@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-white: #ffffff;
+  --color-brand-beige: #f8f5f2;
+  --color-brand-gold: #c9a227;
+  --color-brand-gold-light: #fdfaf2;
+  --color-brand-gold-hover: #b08d20;
+  --color-brand-black: #111111;
+  --color-brand-gray: #f5f5f5;
+  --color-brand-dark-gray: #71717a;
+  
+  --font-sans: var(--font-inter), sans-serif;
+  --font-serif: var(--font-playfair), serif;
+}
+
+body {
+  font-family: var(--font-inter), sans-serif;
+  background-color: #f8f5f2;
+  color: #111111;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f8f5f2;
+}
+::-webkit-scrollbar-thumb {
+  background: #c9a227;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b08d20;
+}
+
+/* Custom visual utilities */
+.luxury-shadow {
+  box-shadow: 0 4px 20px -2px rgba(17, 17, 17, 0.03), 0 2px 8px -1px rgba(201, 162, 39, 0.05);
+}
+
+.luxury-shadow-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.luxury-shadow-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -4px rgba(17, 17, 17, 0.08), 0 4px 12px -2px rgba(201, 162, 39, 0.1);
+}
+
+/* Glassmorphism utility */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glassmorphism-dark {
+  background: rgba(17, 17, 17, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes purchase-pop {
+  0% { transform: translateY(50px) scale(0.9); opacity: 0; }
+  10% { transform: translateY(0) scale(1); opacity: 1; }
+  90% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-50px) scale(0.9); opacity: 0; }
+}
+
+.animate-purchase-pop {
+  animation: purchase-pop 6s ease-in-out forwards;
+}
