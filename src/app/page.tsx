@@ -27,22 +27,22 @@ export default function Home() {
       <div className="relative flex flex-col min-h-screen bg-[#F8F5F2]">
         {/* Sticky Luxury Header */}
         <Header />
-        
+
         {/* Main Content */}
         <main className="flex-grow">
           <Hero />
           <Categories />
           <BestSellers />
-          <PromoBanner />
-          <WhyChooseUs />
-          <Collections />
+          {/* <PromoBanner /> */}
+          {/* <WhyChooseUs /> */}
+          {/*  <Collections />
           <About />
           <SocialProof />
           <MasonryGallery />
-          <FAQ />
-          <Newsletter />
+          <FAQ /> */}
+          {/* <Newsletter /> */}
         </main>
-        
+
         {/* Footer */}
         <Footer />
 
@@ -50,8 +50,8 @@ export default function Home() {
         <CartDrawer />
         <WishlistDrawer />
         <QuickViewModal />
-        <FomoToasts />
-        <StickyAddToCart />
+        {/*<FomoToasts />
+        <StickyAddToCart /> */}
       </div>
     </ShopProvider>
   );

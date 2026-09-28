@@ -5,6 +5,7 @@ import { useShop } from "@/context/ShopContext";
 import { X, ShoppingBag, Plus, Minus, Trash2, Lock, Truck, CreditCard, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { DASHBOARD_API_URL, isOptimizable } from "@/utils/catalog";
 
 export default function CartDrawer() {
   const {
@@ -16,28 +17,56 @@ export default function CartDrawer() {
     cartTotal,
     cartCount,
     clearCart,
+    refreshProducts,
   } = useShop();
 
   const [checkoutStep, setCheckoutStep] = useState<"idle" | "form" | "loading" | "success">("idle");
   const [formData, setFormData] = useState({ name: "", phone: "", address: "", city: "" });
+  const [checkoutError, setCheckoutError] = useState("");
 
   const FREE_SHIPPING_THRESHOLD = 75;
   const progressPercent = Math.min((cartTotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
   const neededForFreeShipping = FREE_SHIPPING_THRESHOLD - cartTotal;
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.phone || !formData.address || !formData.city) return;
     
+    setCheckoutError("");
     setCheckoutStep("loading");
+    try {
+      // Creates a real order in the Aurèa dashboard (prices and stock are checked server-side)
+      const res = await fetch(`${DASHBOARD_API_URL}/api/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: formData,
+          items: cart.map((item) => ({
+            productId: item.product.id,
+            variant: item.selectedVariant,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "We couldn't place your order. Please try again.");
+      }
+    } catch (err) {
+      const message = err instanceof TypeError ? "We couldn't reach our store server. Please try again in a moment." : (err as Error).message;
+      setCheckoutError(message);
+      setCheckoutStep("form");
+      refreshProducts(); // pick up any stock change that caused the failure
+      return;
+    }
+
+    refreshProducts(); // stock just went down
+    setCheckoutStep("success");
     setTimeout(() => {
-      setCheckoutStep("success");
-      setTimeout(() => {
-        clearCart();
-        setCheckoutStep("idle");
-        setCartOpen(false);
-      }, 5000);
-    }, 2000);
+      clearCart();
+      setCheckoutStep("idle");
+      setCartOpen(false);
+    }, 5000);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,6 +214,12 @@ export default function CartDrawer() {
                       <p className="text-[11px] text-[#71717A]">No pre-payment required. You will pay the courier upon receiving your package.</p>
                     </div>
 
+                    {checkoutError && (
+                      <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
+                        {checkoutError}
+                      </p>
+                    )}
+
                     <div className="pt-4 flex gap-3">
                       <button
                         type="button"
@@ -259,6 +294,7 @@ export default function CartDrawer() {
                             fill
                             sizes="80px"
                             className="object-cover object-center"
+                            unoptimized={!isOptimizable(item.product.image)}
                           />
                         </div>
 

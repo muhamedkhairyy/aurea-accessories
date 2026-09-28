@@ -5,6 +5,7 @@ import { useShop } from "@/context/ShopContext";
 import { X, Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { isOptimizable } from "@/utils/catalog";
 
 export default function WishlistDrawer() {
   const {
@@ -14,6 +15,7 @@ export default function WishlistDrawer() {
     setWishlistOpen,
     toggleWishlist,
     addToCart,
+    categoryName,
   } = useShop();
 
   const wishlistProducts = products.filter((p) => wishlist.includes(p.id));
@@ -90,6 +92,7 @@ export default function WishlistDrawer() {
                           fill
                           sizes="80px"
                           className="object-cover object-center"
+                          unoptimized={!isOptimizable(product.image)}
                         />
                       </div>
 
@@ -100,7 +103,7 @@ export default function WishlistDrawer() {
                             <h4 className="font-serif text-[#111111] line-clamp-1">{product.name}</h4>
                             <span className="text-[#111111] ml-2">${product.price.toFixed(2)}</span>
                           </div>
-                          <p className="mt-0.5 text-xs text-[#71717A]">{product.category}</p>
+                          <p className="mt-0.5 text-xs text-[#71717A]">{categoryName(product.category)}</p>
                         </div>
 
                         {/* Actions */}

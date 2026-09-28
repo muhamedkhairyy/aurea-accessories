@@ -5,17 +5,19 @@ import { useShop } from "@/context/ShopContext";
 import { ShoppingBag, Star, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { discountPercent, isOptimizable } from "@/utils/catalog";
 
 export default function StickyAddToCart() {
   const { products, addToCart } = useShop();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState("");
 
-  const flagshipProduct = products[0]; // Aurelia Pendant Necklace
+  // First in-stock product in the live catalog (Aurelia Pendant Necklace by default)
+  const flagshipProduct = products.find((p) => p.stock > 0);
 
   useEffect(() => {
     if (flagshipProduct) {
-      setSelectedVariant(flagshipProduct.variants[0]);
+      setSelectedVariant(flagshipProduct.variants[0] || "Standard");
     }
 
     const handleScroll = () => {
@@ -58,6 +60,7 @@ export default function StickyAddToCart() {
                   fill
                   sizes="48px"
                   className="object-cover object-center"
+                  unoptimized={!isOptimizable(flagshipProduct.image)}
                 />
               </div>
               <div>
@@ -75,6 +78,7 @@ export default function StickyAddToCart() {
             {/* Right side: Actions */}
             <div className="flex flex-1 items-center justify-end gap-3 sm:flex-initial">
               {/* Variant Selector */}
+              {flagshipProduct.variants.length > 0 && (
               <select
                 value={selectedVariant}
                 onChange={(e) => setSelectedVariant(e.target.value)}
@@ -86,12 +90,15 @@ export default function StickyAddToCart() {
                   </option>
                 ))}
               </select>
+              )}
 
               {/* Price & CTA */}
               <div className="flex items-center gap-2">
                 <div className="text-right mr-1 hidden xs:block">
                   <p className="text-sm font-bold text-[#111111]">${flagshipProduct.price.toFixed(2)}</p>
-                  <p className="text-[10px] text-[#71717A] line-through">${flagshipProduct.oldPrice.toFixed(2)}</p>
+                  {discountPercent(flagshipProduct) > 0 && (
+                    <p className="text-[10px] text-[#71717A] line-through">${flagshipProduct.oldPrice.toFixed(2)}</p>
+                  )}
                 </div>
                 
                 <button

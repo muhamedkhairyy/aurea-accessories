@@ -1,11 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { DASHBOARD_API_URL, resolveImage } from "@/utils/catalog";
+import { fetchHero, type HeroContent } from "@/utils/hero";
+import { fetchCategoriesSection, type CategoriesSection } from "@/utils/categories-section";
 
 export interface Product {
   id: string;
   name: string;
-  category: "Necklaces" | "Rings" | "Bracelets" | "Earrings" | "Sets";
+  category: string; // a category key from the dashboard (see ShopCategory)
   price: number;
   oldPrice: number;
   rating: number;
@@ -16,6 +19,20 @@ export interface Product {
   variants: string[];
 }
 
+export interface ShopCategory {
+  key: string;
+  name: { en: string; ar: string };
+}
+
+// Built-in categories, used until (or if) the dashboard's list loads
+const DEFAULT_CATEGORIES: ShopCategory[] = [
+  { key: "Necklaces", name: { en: "Necklaces", ar: "قلادات" } },
+  { key: "Rings", name: { en: "Rings", ar: "خواتم" } },
+  { key: "Bracelets", name: { en: "Bracelets", ar: "أساور" } },
+  { key: "Earrings", name: { en: "Earrings", ar: "أقراط" } },
+  { key: "Sets", name: { en: "Sets", ar: "أطقم" } },
+];
+
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -24,6 +41,10 @@ export interface CartItem {
 
 interface ShopContextType {
   products: Product[];
+  categories: ShopCategory[];
+  categoryName: (key: string) => string;
+  hero: HeroContent | null;
+  categoriesSection: CategoriesSection | null;
   cart: CartItem[];
   wishlist: string[];
   cartOpen: boolean;
@@ -43,6 +64,7 @@ interface ShopContextType {
   updateQuantity: (productId: string, quantity: number, variant: string) => void;
   toggleWishlist: (productId: string) => void;
   clearCart: () => void;
+  refreshProducts: () => Promise<void>;
   cartTotal: number;
   cartCount: number;
   language: 'en' | 'ar';
@@ -158,7 +180,44 @@ const PRODUCTS: Product[] = [
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
+// How often the storefront re-checks the dashboard for catalog changes
+const CATALOG_POLL_MS = 15_000;
+
+async function fetchCatalog(): Promise<{ products: Product[]; categories: ShopCategory[] | undefined }> {
+  const res = await fetch(`${DASHBOARD_API_URL}/api/products`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Catalog request failed (${res.status})`);
+  const data: { products: Product[]; categoryList?: ShopCategory[] } = await res.json();
+  return { products: data.products.map((p) => ({ ...p, image: resolveImage(p.image) })), categories: data.categoryList };
+}
+
+// Reuse unchanged product objects so polling doesn't reset UI that depends on them (e.g. a selected variant)
+function keepIdentity(prev: Product[], incoming: Product[]): Product[] {
+  return incoming.map((p) => {
+    const old = prev.find((o) => o.id === p.id);
+    return old && JSON.stringify(old) === JSON.stringify(p) ? old : p;
+  });
+}
+
+// Keep saved cart lines in step with the live catalog: fresh price/details, capped to stock, removed if gone
+function syncCart(cart: CartItem[], products: Product[]): CartItem[] {
+  const next = cart.flatMap((item) => {
+    const live = products.find((p) => p.id === item.product.id);
+    if (!live || live.stock <= 0) return [];
+    const quantity = Math.min(item.quantity, live.stock);
+    return [live === item.product && quantity === item.quantity ? item : { ...item, product: live, quantity }];
+  });
+  return next.length === cart.length && next.every((item, i) => item === cart[i]) ? cart : next;
+}
+
 export function ShopProvider({ children }: { children: React.ReactNode }) {
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [categories, setCategories] = useState<ShopCategory[]>(DEFAULT_CATEGORIES);
+  const categoryListJsonRef = useRef(JSON.stringify(DEFAULT_CATEGORIES));
+  // null until the dashboard answers — Hero then falls back to the built-in translations
+  const [hero, setHero] = useState<HeroContent | null>(null);
+  const heroJsonRef = useRef("");
+  const [categoriesSection, setCategoriesSection] = useState<CategoriesSection | null>(null);
+  const categoriesJsonRef = useRef("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -168,6 +227,83 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  const productsRef = useRef<Product[]>(PRODUCTS);
+
+  const applyCatalog = useCallback((incoming: Product[]) => {
+    const list = keepIdentity(productsRef.current, incoming);
+    productsRef.current = list;
+    setProducts(list);
+    setCart((prev) => syncCart(prev, list));
+    setWishlist((prev) => {
+      const kept = prev.filter((id) => list.some((p) => p.id === id));
+      return kept.length === prev.length ? prev : kept;
+    });
+    setQuickViewProduct((prev) => (prev ? list.find((p) => p.id === prev.id) ?? null : prev));
+  }, []);
+
+  const applyCategories = useCallback((list: ShopCategory[] | undefined) => {
+    if (!list) return; // older dashboard without categories — keep the built-in list
+    const json = JSON.stringify(list);
+    if (json === categoryListJsonRef.current) return;
+    categoryListJsonRef.current = json;
+    setCategories(list);
+    // A filter on a category that no longer exists would show nothing
+    setSelectedCategory((prev) => (prev === "All" || list.some((c) => c.key === prev) ? prev : "All"));
+  }, []);
+
+  const refreshProducts = useCallback(async () => {
+    try {
+      const { products: list, categories: cats } = await fetchCatalog();
+      applyCatalog(list);
+      applyCategories(cats);
+    } catch (e) {
+      // Dashboard offline: keep showing the last known catalog
+      console.warn("Could not refresh catalog from dashboard", e);
+    }
+  }, [applyCatalog, applyCategories]);
+
+  // Pull the live catalog from the dashboard, then keep it fresh (poll + tab focus)
+  useEffect(() => {
+    const load = () => {
+      fetchCatalog()
+        .then(({ products: list, categories: cats }) => {
+          applyCatalog(list);
+          applyCategories(cats);
+        })
+        .catch((e) => console.warn("Could not load catalog from dashboard", e));
+      fetchHero()
+        .then((next) => {
+          const json = JSON.stringify(next);
+          if (json === heroJsonRef.current) return; // unchanged — skip the re-render
+          heroJsonRef.current = json;
+          setHero(next);
+        })
+        .catch((e) => console.warn("Could not load hero content from dashboard", e));
+      fetchCategoriesSection()
+        .then((next) => {
+          const json = JSON.stringify(next);
+          if (json === categoriesJsonRef.current) return;
+          categoriesJsonRef.current = json;
+          setCategoriesSection(next);
+        })
+        .catch((e) => console.warn("Could not load categories section from dashboard", e));
+    };
+    load();
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, CATALOG_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", load);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", load);
+    };
+  }, [applyCatalog, applyCategories]);
 
   // Load cart and wishlist from localStorage on mount
   useEffect(() => {
@@ -209,20 +345,24 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   }, [language]);
 
   const addToCart = (product: Product, quantity = 1, variant?: string) => {
+    if (product.stock <= 0) return;
     const selectedVariant = variant || product.variants[0] || "Standard";
     
     setCart((prev) => {
+      // Never let the bag hold more units than the dashboard has in stock (across all variants)
+      const inBag = prev.filter((item) => item.product.id === product.id).reduce((n, item) => n + item.quantity, 0);
+      const addable = Math.min(quantity, product.stock - inBag);
+      if (addable <= 0) return prev;
+
       const existingIndex = prev.findIndex(
         (item) => item.product.id === product.id && item.selectedVariant === selectedVariant
       );
 
       if (existingIndex > -1) {
-        const nextCart = [...prev];
-        nextCart[existingIndex].quantity += quantity;
-        return nextCart;
+        return prev.map((item, i) => (i === existingIndex ? { ...item, quantity: item.quantity + addable } : item));
       }
 
-      return [...prev, { product, quantity, selectedVariant }];
+      return [...prev, { product, quantity: addable, selectedVariant }];
     });
     
     // Automatically trigger cart drawer for conversion push
@@ -238,13 +378,15 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       removeFromCart(productId, variant);
       return;
     }
-    setCart((prev) =>
-      prev.map((item) =>
-        item.product.id === productId && item.selectedVariant === variant
-          ? { ...item, quantity }
-          : item
-      )
-    );
+    setCart((prev) => {
+      const target = prev.find((item) => item.product.id === productId && item.selectedVariant === variant);
+      if (!target) return prev;
+      const otherVariants = prev
+        .filter((item) => item.product.id === productId && item !== target)
+        .reduce((n, item) => n + item.quantity, 0);
+      const capped = Math.min(quantity, Math.max(target.product.stock - otherVariants, 1));
+      return prev.map((item) => (item === target ? { ...item, quantity: capped } : item));
+    });
   };
 
   const toggleWishlist = (productId: string) => {
@@ -257,13 +399,23 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     setCart([]);
   };
 
+  // Localized display name of a category key (Arabic falls back to English)
+  const categoryName = (key: string) => {
+    const c = categories.find((x) => x.key === key);
+    return (language === "ar" && c?.name.ar) || c?.name.en || key;
+  };
+
   const cartTotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
   const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
 
   return (
     <ShopContext.Provider
       value={{
-        products: PRODUCTS,
+        products,
+        categories,
+        categoryName,
+        hero,
+        categoriesSection,
         cart,
         wishlist,
         cartOpen,
@@ -283,6 +435,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         updateQuantity,
         toggleWishlist,
         clearCart,
+        refreshProducts,
         cartTotal,
         cartCount,
         language,

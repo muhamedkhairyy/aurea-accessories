@@ -5,9 +5,10 @@ import { useShop } from "@/context/ShopContext";
 import { X, Star, Check, ShoppingBag, Shield, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { discountPercent, isOptimizable } from "@/utils/catalog";
 
 export default function QuickViewModal() {
-  const { quickViewProduct, setQuickViewProduct, addToCart, wishlist, toggleWishlist } = useShop();
+  const { quickViewProduct, setQuickViewProduct, addToCart, wishlist, toggleWishlist, categoryName } = useShop();
   const [selectedVariant, setSelectedVariant] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -22,6 +23,8 @@ export default function QuickViewModal() {
   if (!quickViewProduct) return null;
 
   const inWishlist = wishlist.includes(quickViewProduct.id);
+  const soldOut = quickViewProduct.stock <= 0;
+  const discount = discountPercent(quickViewProduct);
 
   const handleAddToCart = () => {
     addToCart(quickViewProduct, quantity, selectedVariant);
@@ -67,8 +70,13 @@ export default function QuickViewModal() {
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover object-center"
                   priority
+                  unoptimized={!isOptimizable(quickViewProduct.image)}
                 />
-                {quickViewProduct.stock <= 8 && (
+                {soldOut ? (
+                  <span className="absolute left-4 top-4 rounded bg-[#71717A] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                    Sold Out
+                  </span>
+                ) : quickViewProduct.stock <= 8 && (
                   <span className="absolute left-4 top-4 rounded bg-[#EF4444] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
                     Only {quickViewProduct.stock} Left in Stock
                   </span>
@@ -79,7 +87,7 @@ export default function QuickViewModal() {
               <div className="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col justify-between">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227]">
-                    {quickViewProduct.category}
+                    {categoryName(quickViewProduct.category)}
                   </span>
                   
                   <h3 className="mt-1 font-serif text-2xl font-bold tracking-tight text-[#111111]">
@@ -100,10 +108,14 @@ export default function QuickViewModal() {
                   {/* Price */}
                   <div className="mt-4 flex items-baseline gap-3">
                     <span className="text-2xl font-bold text-[#111111]">${quickViewProduct.price.toFixed(2)}</span>
-                    <span className="text-sm text-[#71717A] line-through">${quickViewProduct.oldPrice.toFixed(2)}</span>
-                    <span className="rounded bg-[#C9A227]/10 px-2 py-0.5 text-xs font-bold text-[#C9A227]">
-                      Save {Math.round(((quickViewProduct.oldPrice - quickViewProduct.price) / quickViewProduct.oldPrice) * 100)}%
-                    </span>
+                    {discount > 0 && (
+                      <>
+                        <span className="text-sm text-[#71717A] line-through">${quickViewProduct.oldPrice.toFixed(2)}</span>
+                        <span className="rounded bg-[#C9A227]/10 px-2 py-0.5 text-xs font-bold text-[#C9A227]">
+                          Save {discount}%
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   <p className="mt-4 text-sm leading-relaxed text-[#71717A]">
@@ -111,6 +123,7 @@ export default function QuickViewModal() {
                   </p>
 
                   {/* Variants */}
+                  {quickViewProduct.variants.length > 0 && (
                   <div className="mt-6">
                     <label className="text-xs font-bold uppercase tracking-wider text-[#71717A]">
                       Select Style / Size
@@ -131,6 +144,7 @@ export default function QuickViewModal() {
                       ))}
                     </div>
                   </div>
+                  )}
 
                   {/* Quantity Selector */}
                   <div className="mt-6 flex items-center gap-3">
@@ -144,7 +158,7 @@ export default function QuickViewModal() {
                       </button>
                       <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
                       <button
-                        onClick={() => setQuantity(quantity + 1)}
+                        onClick={() => setQuantity(Math.min(quantity + 1, Math.max(quickViewProduct.stock, 1)))}
                         className="p-1 text-[#71717A] hover:text-[#111111] transition-colors"
                       >
                         +
@@ -158,10 +172,11 @@ export default function QuickViewModal() {
                   <div className="flex gap-3">
                     <button
                       onClick={handleAddToCart}
-                      className="flex-1 rounded-full bg-[#111111] text-white py-3.5 text-sm font-semibold hover:bg-[#C9A227] transition-all flex items-center justify-center gap-2 shadow-lg"
+                      disabled={soldOut}
+                      className="flex-1 rounded-full bg-[#111111] text-white py-3.5 text-sm font-semibold hover:bg-[#C9A227] transition-all flex items-center justify-center gap-2 shadow-lg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#111111]"
                     >
                       <ShoppingBag className="h-4 w-4" />
-                      <span>Add to Bag - ${(quickViewProduct.price * quantity).toFixed(2)}</span>
+                      <span>{soldOut ? "Sold Out" : `Add to Bag - $${(quickViewProduct.price * quantity).toFixed(2)}`}</span>
                     </button>
                     
                     <button

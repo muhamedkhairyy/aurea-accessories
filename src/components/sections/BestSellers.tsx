@@ -5,6 +5,7 @@ import { useShop, Product } from "@/context/ShopContext";
 import { Star, Heart, Eye, ShoppingBag, SlidersHorizontal, Search, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { translations } from "@/utils/translations";
+import { discountPercent, isOptimizable } from "@/utils/catalog";
 
 export default function BestSellers() {
   const {
@@ -20,12 +21,14 @@ export default function BestSellers() {
     searchQuery,
     setSearchQuery,
     language,
+    categories,
+    categoryName,
   } = useShop();
 
   const t = translations[language];
 
-  // Categories list for filtering
-  const CATEGORIES = ["All", "Necklaces", "Rings", "Bracelets", "Earrings", "Sets"];
+  // Category filter tabs come from the dashboard's category list
+  const CATEGORIES = ["All", ...categories.map((c) => c.key)];
 
   // Filter and sort products
   const filteredProducts = products
@@ -79,7 +82,7 @@ export default function BestSellers() {
                     : "bg-white text-[#71717A] border border-[#E4E4E7] hover:border-[#111111] hover:text-[#111111]"
                 }`}
               >
-                {cat}
+                {cat === "All" ? (language === 'ar' ? 'الكل' : 'All') : categoryName(cat)}
               </button>
             ))}
           </div>
@@ -108,7 +111,7 @@ export default function BestSellers() {
               <Search className="h-3.5 w-3.5" />
               <span>
                 {language === 'ar' ? 'عرض' : 'Showing'} <strong className="text-[#111111]">{filteredProducts.length}</strong> {language === 'ar' ? 'منتجات' : 'items'}
-                {selectedCategory !== "All" && <> {language === 'ar' ? 'في فئة' : 'in category'} <strong className="text-[#111111]">{selectedCategory}</strong></>}
+                {selectedCategory !== "All" && <> {language === 'ar' ? 'في فئة' : 'in category'} <strong className="text-[#111111]">{categoryName(selectedCategory)}</strong></>}
                 {searchQuery && <> {language === 'ar' ? 'مطابقة لـ' : 'matching'} &quot;<strong className="text-[#111111]">{searchQuery}</strong>&quot;</>}
               </span>
             </div>
@@ -142,7 +145,9 @@ export default function BestSellers() {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
             {filteredProducts.map((product) => {
               const inWishlist = wishlist.includes(product.id);
-              const discount = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
+              const discount = discountPercent(product);
+              const soldOut = product.stock <= 0;
+              const soldOutLabel = language === 'ar' ? 'نفدت الكمية' : 'Sold Out';
 
               return (
                 <div
@@ -156,14 +161,21 @@ export default function BestSellers() {
                       alt={product.name}
                       fill
                       sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                      className={`object-cover object-center transition-transform duration-700 group-hover:scale-105 ${soldOut ? "opacity-60 grayscale" : ""}`}
                       loading="lazy"
+                      unoptimized={!isOptimizable(product.image)}
                     />
 
-                    {/* Sale Badge */}
-                    <span className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-3 rounded-full bg-[#111111] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white`}>
-                      {language === 'ar' ? 'تخفيض' : 'Sale'} -{discount}%
-                    </span>
+                    {/* Sale / Sold-out Badge */}
+                    {soldOut ? (
+                      <span className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-3 rounded-full bg-[#71717A] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white`}>
+                        {soldOutLabel}
+                      </span>
+                    ) : discount > 0 && (
+                      <span className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-3 rounded-full bg-[#111111] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white`}>
+                        {language === 'ar' ? 'تخفيض' : 'Sale'} -{discount}%
+                      </span>
+                    )}
 
                     {/* Wishlist toggle icon */}
                     <button
@@ -187,8 +199,9 @@ export default function BestSellers() {
                       </button>
                       <button
                         onClick={() => addToCart(product, 1)}
-                        className="rounded-full bg-[#111111] text-white p-3 hover:bg-[#C9A227] transition-all shadow-lg hover:scale-105 cursor-pointer"
-                        title="Add to Bag"
+                        disabled={soldOut}
+                        className="rounded-full bg-[#111111] text-white p-3 hover:bg-[#C9A227] transition-all shadow-lg hover:scale-105 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 disabled:hover:bg-[#111111]"
+                        title={soldOut ? soldOutLabel : "Add to Bag"}
                       >
                         <ShoppingBag className="h-4 w-4" />
                       </button>
@@ -218,7 +231,7 @@ export default function BestSellers() {
                       </h3>
                       
                       <p className="text-[10px] text-[#71717A] font-semibold tracking-wider mt-0.5">
-                        {product.category}
+                        {categoryName(product.category)}
                       </p>
                     </div>
 
@@ -226,14 +239,17 @@ export default function BestSellers() {
                     <div className="mt-4 flex items-center justify-between gap-2 border-t border-[#F5F5F5] pt-3">
                       <div>
                         <span className="text-sm font-extrabold text-[#111111]">${product.price.toFixed(2)}</span>
-                        <span className="text-[10px] text-[#71717A] line-through ml-1.5">${product.oldPrice.toFixed(2)}</span>
+                        {discount > 0 && (
+                          <span className="text-[10px] text-[#71717A] line-through ml-1.5">${product.oldPrice.toFixed(2)}</span>
+                        )}
                       </div>
                       
                       {/* Mobile action button (Add to Cart direct) */}
                       <button
                         onClick={() => addToCart(product, 1)}
-                        className="rounded-full bg-[#111111] hover:bg-[#C9A227] text-white p-2.5 transition-colors md:hidden cursor-pointer"
-                        aria-label="Add to cart"
+                        disabled={soldOut}
+                        className="rounded-full bg-[#111111] hover:bg-[#C9A227] text-white p-2.5 transition-colors md:hidden cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#111111]"
+                        aria-label={soldOut ? soldOutLabel : "Add to cart"}
                       >
                         <ShoppingBag className="h-3.5 w-3.5" />
                       </button>

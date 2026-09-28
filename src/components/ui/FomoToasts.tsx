@@ -5,6 +5,7 @@ import { useShop } from "@/context/ShopContext";
 import { CheckCircle, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { isOptimizable } from "@/utils/catalog";
 
 interface PurchaseNotification {
   name: string;
@@ -82,6 +83,7 @@ export default function FomoToasts() {
                 fill
                 sizes="48px"
                 className="object-cover object-center"
+                unoptimized={!isOptimizable(activeToast.productImage)}
               />
             </div>
 
