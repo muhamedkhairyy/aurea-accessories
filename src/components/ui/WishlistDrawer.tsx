@@ -5,7 +5,7 @@ import { useShop } from "@/context/ShopContext";
 import { X, Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { isOptimizable } from "@/utils/catalog";
+import { formatPrice, isOptimizable } from "@/utils/catalog";
 
 export default function WishlistDrawer() {
   const {
@@ -16,6 +16,7 @@ export default function WishlistDrawer() {
     toggleWishlist,
     addToCart,
     categoryName,
+    language,
   } = useShop();
 
   const wishlistProducts = products.filter((p) => wishlist.includes(p.id));
@@ -101,7 +102,7 @@ export default function WishlistDrawer() {
                         <div>
                           <div className="flex justify-between text-sm font-semibold">
                             <h4 className="font-serif text-[#111111] line-clamp-1">{product.name}</h4>
-                            <span className="text-[#111111] ml-2">${product.price.toFixed(2)}</span>
+                            <span className="text-[#111111] ml-2">{formatPrice(product.price, language)}</span>
                           </div>
                           <p className="mt-0.5 text-xs text-[#71717A]">{categoryName(product.category)}</p>
                         </div>

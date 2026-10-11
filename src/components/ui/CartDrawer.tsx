@@ -5,7 +5,7 @@ import { useShop } from "@/context/ShopContext";
 import { X, ShoppingBag, Plus, Minus, Trash2, Lock, Truck, CreditCard, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { DASHBOARD_API_URL, isOptimizable } from "@/utils/catalog";
+import { DASHBOARD_API_URL, formatPrice, isOptimizable } from "@/utils/catalog";
 
 export default function CartDrawer() {
   const {
@@ -18,6 +18,7 @@ export default function CartDrawer() {
     cartCount,
     clearCart,
     refreshProducts,
+    language,
   } = useShop();
 
   const [checkoutStep, setCheckoutStep] = useState<"idle" | "form" | "loading" | "success">("idle");
@@ -267,7 +268,7 @@ export default function CartDrawer() {
                           <span className="text-[#C9A227] font-semibold">🎉 You have unlocked Free Shipping!</span>
                         ) : (
                           <>
-                            Add <span className="font-bold text-[#C9A227]">${neededForFreeShipping.toFixed(2)}</span> more for <span className="font-bold">FREE Shipping & COD</span>
+                            Add <span className="font-bold text-[#C9A227]">{formatPrice(neededForFreeShipping, language)}</span> more for <span className="font-bold">FREE Shipping & COD</span>
                           </>
                         )}
                       </span>
@@ -303,7 +304,7 @@ export default function CartDrawer() {
                           <div>
                             <div className="flex justify-between text-sm font-semibold">
                               <h4 className="font-serif text-[#111111] line-clamp-1">{item.product.name}</h4>
-                              <span className="text-[#111111] ml-2">${(item.product.price * item.quantity).toFixed(2)}</span>
+                              <span className="text-[#111111] ml-2">{formatPrice(item.product.price * item.quantity, language)}</span>
                             </div>
                             <p className="mt-0.5 text-xs text-[#71717A]">{item.selectedVariant}</p>
                           </div>
@@ -365,19 +366,19 @@ export default function CartDrawer() {
                 <div className="space-y-1.5 text-xs text-[#71717A]">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span className="font-semibold text-[#111111]">${cartTotal.toFixed(2)}</span>
+                    <span className="font-semibold text-[#111111]">{formatPrice(cartTotal, language)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
                     {progressPercent >= 100 ? (
                       <span className="text-[#C9A227] font-semibold uppercase">Free</span>
                     ) : (
-                      <span className="font-semibold text-[#111111]">$4.99</span>
+                      <span className="font-semibold text-[#111111]">{formatPrice(4.99, language)}</span>
                     )}
                   </div>
                   <div className="flex justify-between text-sm font-bold text-[#111111] pt-2 border-t border-[#F5F5F5]">
                     <span>Total (Est.)</span>
-                    <span>${(cartTotal + (progressPercent >= 100 ? 0 : 4.99)).toFixed(2)}</span>
+                    <span>{formatPrice(cartTotal + (progressPercent >= 100 ? 0 : 4.99), language)}</span>
                   </div>
                 </div>
 

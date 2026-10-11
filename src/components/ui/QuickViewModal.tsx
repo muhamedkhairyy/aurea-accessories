@@ -5,10 +5,10 @@ import { useShop } from "@/context/ShopContext";
 import { X, Star, Check, ShoppingBag, Shield, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { discountPercent, isOptimizable } from "@/utils/catalog";
+import { discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
 
 export default function QuickViewModal() {
-  const { quickViewProduct, setQuickViewProduct, addToCart, wishlist, toggleWishlist, categoryName } = useShop();
+  const { quickViewProduct, setQuickViewProduct, addToCart, wishlist, toggleWishlist, categoryName, language } = useShop();
   const [selectedVariant, setSelectedVariant] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -89,7 +89,7 @@ export default function QuickViewModal() {
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227]">
                     {categoryName(quickViewProduct.category)}
                   </span>
-                  
+
                   <h3 className="mt-1 font-serif text-2xl font-bold tracking-tight text-[#111111]">
                     {quickViewProduct.name}
                   </h3>
@@ -107,10 +107,10 @@ export default function QuickViewModal() {
 
                   {/* Price */}
                   <div className="mt-4 flex items-baseline gap-3">
-                    <span className="text-2xl font-bold text-[#111111]">${quickViewProduct.price.toFixed(2)}</span>
+                    <span className="text-2xl font-bold text-[#111111]">{formatPrice(quickViewProduct.price, language)}</span>
                     {discount > 0 && (
                       <>
-                        <span className="text-sm text-[#71717A] line-through">${quickViewProduct.oldPrice.toFixed(2)}</span>
+                        <span className="text-sm text-[#71717A] line-through">{formatPrice(quickViewProduct.oldPrice, language)}</span>
                         <span className="rounded bg-[#C9A227]/10 px-2 py-0.5 text-xs font-bold text-[#C9A227]">
                           Save {discount}%
                         </span>
@@ -124,26 +124,25 @@ export default function QuickViewModal() {
 
                   {/* Variants */}
                   {quickViewProduct.variants.length > 0 && (
-                  <div className="mt-6">
-                    <label className="text-xs font-bold uppercase tracking-wider text-[#71717A]">
-                      Select Style / Size
-                    </label>
-                    <div className="mt-2.5 flex flex-wrap gap-2">
-                      {quickViewProduct.variants.map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => setSelectedVariant(v)}
-                          className={`rounded-full border px-4 py-2 text-xs font-medium transition-all ${
-                            selectedVariant === v
-                              ? "border-[#111111] bg-[#111111] text-white"
-                              : "border-[#E4E4E7] bg-white text-[#111111] hover:border-[#111111]"
-                          }`}
-                        >
-                          {v}
-                        </button>
-                      ))}
+                    <div className="mt-6">
+                      <label className="text-xs font-bold uppercase tracking-wider text-[#71717A]">
+                        Select Style / Size
+                      </label>
+                      <div className="mt-2.5 flex flex-wrap gap-2">
+                        {quickViewProduct.variants.map((v) => (
+                          <button
+                            key={v}
+                            onClick={() => setSelectedVariant(v)}
+                            className={`rounded-full border px-4 py-2 text-xs font-medium transition-all ${selectedVariant === v
+                                ? "border-[#111111] bg-[#111111] text-white"
+                                : "border-[#E4E4E7] bg-white text-[#111111] hover:border-[#111111]"
+                              }`}
+                          >
+                            {v}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
                   )}
 
                   {/* Quantity Selector */}
@@ -176,36 +175,19 @@ export default function QuickViewModal() {
                       className="flex-1 rounded-full bg-[#111111] text-white py-3.5 text-sm font-semibold hover:bg-[#C9A227] transition-all flex items-center justify-center gap-2 shadow-lg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#111111]"
                     >
                       <ShoppingBag className="h-4 w-4" />
-                      <span>{soldOut ? "Sold Out" : `Add to Bag - $${(quickViewProduct.price * quantity).toFixed(2)}`}</span>
+                      <span>{soldOut ? "Sold Out" : `Add to Bag - ${formatPrice(quickViewProduct.price * quantity, language)}`}</span>
                     </button>
-                    
+
                     <button
                       onClick={() => toggleWishlist(quickViewProduct.id)}
-                      className={`rounded-full border p-3.5 transition-all ${
-                        inWishlist
+                      className={`rounded-full border p-3.5 transition-all ${inWishlist
                           ? "border-[#EF4444] bg-[#EF4444]/5 text-[#EF4444]"
                           : "border-[#E4E4E7] bg-white text-[#71717A] hover:text-[#111111] hover:border-[#111111]"
-                      }`}
+                        }`}
                       aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
                     >
                       <Heart className="h-4 w-4 fill-current" />
                     </button>
-                  </div>
-
-                  {/* Trust Badges */}
-                  <div className="flex items-center justify-center gap-6 text-[11px] text-[#71717A] pt-2 border-t border-[#F5F5F5]">
-                    <div className="flex items-center gap-1">
-                      <Check className="h-3.5 w-3.5 text-[#C9A227]" />
-                      <span>100% Waterproof</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Check className="h-3.5 w-3.5 text-[#C9A227]" />
-                      <span>Hypoallergenic</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Check className="h-3.5 w-3.5 text-[#C9A227]" />
-                      <span>Lifetime Shiny Gold</span>
-                    </div>
                   </div>
                 </div>
               </div>

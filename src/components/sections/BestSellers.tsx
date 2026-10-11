@@ -5,7 +5,7 @@ import { useShop, Product } from "@/context/ShopContext";
 import { Star, Heart, Eye, ShoppingBag, SlidersHorizontal, Search, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { translations } from "@/utils/translations";
-import { discountPercent, isOptimizable } from "@/utils/catalog";
+import { discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
 
 export default function BestSellers() {
   const {
@@ -238,9 +238,9 @@ export default function BestSellers() {
                     {/* Price & Cart footer */}
                     <div className="mt-4 flex items-center justify-between gap-2 border-t border-[#F5F5F5] pt-3">
                       <div>
-                        <span className="text-sm font-extrabold text-[#111111]">${product.price.toFixed(2)}</span>
+                        <span className="text-sm font-extrabold text-[#111111]">{formatPrice(product.price, language)}</span>
                         {discount > 0 && (
-                          <span className="text-[10px] text-[#71717A] line-through ml-1.5">${product.oldPrice.toFixed(2)}</span>
+                          <span className="text-[10px] text-[#71717A] line-through ml-1.5">{formatPrice(product.oldPrice, language)}</span>
                         )}
                       </div>
                       

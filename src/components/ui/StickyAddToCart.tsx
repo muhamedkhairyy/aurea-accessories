@@ -5,10 +5,10 @@ import { useShop } from "@/context/ShopContext";
 import { ShoppingBag, Star, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { discountPercent, isOptimizable } from "@/utils/catalog";
+import { discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
 
 export default function StickyAddToCart() {
-  const { products, addToCart } = useShop();
+  const { products, addToCart, language } = useShop();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState("");
 
@@ -95,9 +95,9 @@ export default function StickyAddToCart() {
               {/* Price & CTA */}
               <div className="flex items-center gap-2">
                 <div className="text-right mr-1 hidden xs:block">
-                  <p className="text-sm font-bold text-[#111111]">${flagshipProduct.price.toFixed(2)}</p>
+                  <p className="text-sm font-bold text-[#111111]">{formatPrice(flagshipProduct.price, language)}</p>
                   {discountPercent(flagshipProduct) > 0 && (
-                    <p className="text-[10px] text-[#71717A] line-through">${flagshipProduct.oldPrice.toFixed(2)}</p>
+                    <p className="text-[10px] text-[#71717A] line-through">{formatPrice(flagshipProduct.oldPrice, language)}</p>
                   )}
                 </div>
                 

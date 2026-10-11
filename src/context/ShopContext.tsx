@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { DASHBOARD_API_URL, resolveImage } from "@/utils/catalog";
+import { fetchCatalog } from "@/utils/catalog";
 import { fetchHero, type HeroContent } from "@/utils/hero";
 import { fetchCategoriesSection, type CategoriesSection } from "@/utils/categories-section";
 
@@ -23,15 +23,6 @@ export interface ShopCategory {
   key: string;
   name: { en: string; ar: string };
 }
-
-// Built-in categories, used until (or if) the dashboard's list loads
-const DEFAULT_CATEGORIES: ShopCategory[] = [
-  { key: "Necklaces", name: { en: "Necklaces", ar: "قلادات" } },
-  { key: "Rings", name: { en: "Rings", ar: "خواتم" } },
-  { key: "Bracelets", name: { en: "Bracelets", ar: "أساور" } },
-  { key: "Earrings", name: { en: "Earrings", ar: "أقراط" } },
-  { key: "Sets", name: { en: "Sets", ar: "أطقم" } },
-];
 
 export interface CartItem {
   product: Product;
@@ -71,124 +62,10 @@ interface ShopContextType {
   setLanguage: (lang: 'en' | 'ar') => void;
 }
 
-const PRODUCTS: Product[] = [
-  {
-    id: "aurelia-pendant",
-    name: "Aurelia Pendant Necklace",
-    category: "Necklaces",
-    price: 49.0,
-    oldPrice: 95.0,
-    rating: 4.9,
-    reviewsCount: 342,
-    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=600",
-    description: "Designed in 18k gold plated premium stainless steel. A timeless drop pendant that sits elegantly on your collarbone. 100% waterproof, sweatproof, and designed to wear 24/7.",
-    stock: 8,
-    variants: ["18K Gold", "Silver"],
-  },
-  {
-    id: "celeste-spinner",
-    name: "Celeste Spinner Ring",
-    category: "Rings",
-    price: 35.0,
-    oldPrice: 70.0,
-    rating: 4.8,
-    reviewsCount: 198,
-    image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=600",
-    description: "Features a rotating center band designed to relieve stress and soothe the mind. Crafted in high-durability stainless steel with an ultra-polished luster.",
-    stock: 14,
-    variants: ["Size 6", "Size 7", "Size 8", "Size 9"],
-  },
-  {
-    id: "solene-herringbone",
-    name: "Solene Herringbone Bracelet",
-    category: "Bracelets",
-    price: 39.0,
-    oldPrice: 80.0,
-    rating: 4.9,
-    reviewsCount: 215,
-    image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=600",
-    description: "A sleek, liquid-gold style flat herringbone chain that hugs your wrist beautifully. Perfect for stacking or wearing solo. Fully hypoallergenic and sweat-resistant.",
-    stock: 5,
-    variants: ["18K Gold", "Silver"],
-  },
-  {
-    id: "maia-droplet",
-    name: "Maia Droplet Earrings",
-    category: "Earrings",
-    price: 32.0,
-    oldPrice: 65.0,
-    rating: 4.7,
-    reviewsCount: 154,
-    image: "https://images.unsplash.com/photo-1630019852942-f89202989a59?q=80&w=600",
-    description: "Sculpted teardrops that capture light from every angle. Lightweight, skin-friendly, and designed for comfortable, secure all-day wear.",
-    stock: 19,
-    variants: ["18K Gold", "Silver"],
-  },
-  {
-    id: "elysian-layered",
-    name: "Elysian Layered Set",
-    category: "Sets",
-    price: 75.0,
-    oldPrice: 160.0,
-    rating: 5.0,
-    reviewsCount: 412,
-    image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=600",
-    description: "The ultimate luxury curation. Includes the Aurelia Pendant Necklace and the Solene Herringbone Bracelet at a bundled discount. Comes in signature premium packaging.",
-    stock: 3,
-    variants: ["18K Gold Set", "Silver Set"],
-  },
-  {
-    id: "amara-eternity",
-    name: "Amara Eternity Ring",
-    category: "Rings",
-    price: 38.0,
-    oldPrice: 80.0,
-    rating: 4.9,
-    reviewsCount: 187,
-    image: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?q=80&w=600",
-    description: "Adorned with high-grade cubic zirconia crystals that shine like diamonds. Fully waterproof stainless steel base ensures crystals stay secure and metal never tarnishes.",
-    stock: 7,
-    variants: ["Size 6", "Size 7", "Size 8"],
-  },
-  {
-    id: "lumiere-hoop",
-    name: "Lumiere Hoop Earrings",
-    category: "Earrings",
-    price: 29.0,
-    oldPrice: 60.0,
-    rating: 4.8,
-    reviewsCount: 289,
-    image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?q=80&w=600",
-    description: "Classic chunky hoops that add instant polish to any outfit. Hollow-core design ensures they are ultra-lightweight and comfortable.",
-    stock: 11,
-    variants: ["Small", "Medium", "Large"],
-  },
-  {
-    id: "seraphina-cable",
-    name: "Seraphina Cable Chain",
-    category: "Necklaces",
-    price: 45.0,
-    oldPrice: 90.0,
-    rating: 4.9,
-    reviewsCount: 203,
-    image: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?q=80&w=600",
-    description: "A delicate, shimmering paperclip link chain. Sleek, minimalist, and tarnish-free. Designed for the active modern woman.",
-    stock: 6,
-    variants: ["18K Gold", "Silver"],
-  },
-];
-
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 // How often the storefront re-checks the dashboard for catalog changes
 const CATALOG_POLL_MS = 15_000;
-
-async function fetchCatalog(): Promise<{ products: Product[]; categories: ShopCategory[] | undefined }> {
-  const res = await fetch(`${DASHBOARD_API_URL}/api/products`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Catalog request failed (${res.status})`);
-  const data: { products: Product[]; categoryList?: ShopCategory[] } = await res.json();
-  return { products: data.products.map((p) => ({ ...p, image: resolveImage(p.image) })), categories: data.categoryList };
-}
 
 // Reuse unchanged product objects so polling doesn't reset UI that depends on them (e.g. a selected variant)
 function keepIdentity(prev: Product[], incoming: Product[]): Product[] {
@@ -209,15 +86,24 @@ function syncCart(cart: CartItem[], products: Product[]): CartItem[] {
   return next.length === cart.length && next.every((item, i) => item === cart[i]) ? cart : next;
 }
 
-export function ShopProvider({ children }: { children: React.ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
-  const [categories, setCategories] = useState<ShopCategory[]>(DEFAULT_CATEGORIES);
-  const categoryListJsonRef = useRef(JSON.stringify(DEFAULT_CATEGORIES));
+// Dashboard data loaded on the server, so the first render already shows the live catalog
+export interface InitialShopData {
+  products: Product[];
+  categories: ShopCategory[];
+  hero: HeroContent | null;
+  categoriesSection: CategoriesSection | null;
+}
+
+export function ShopProvider({ children, initial }: { children: React.ReactNode; initial?: InitialShopData }) {
+  // Catalog and categories come only from the dashboard — empty if the server couldn't reach it
+  const [products, setProducts] = useState<Product[]>(initial?.products ?? []);
+  const [categories, setCategories] = useState<ShopCategory[]>(initial?.categories ?? []);
+  const categoryListJsonRef = useRef(JSON.stringify(initial?.categories ?? []));
   // null until the dashboard answers — Hero then falls back to the built-in translations
-  const [hero, setHero] = useState<HeroContent | null>(null);
-  const heroJsonRef = useRef("");
-  const [categoriesSection, setCategoriesSection] = useState<CategoriesSection | null>(null);
-  const categoriesJsonRef = useRef("");
+  const [hero, setHero] = useState<HeroContent | null>(initial?.hero ?? null);
+  const heroJsonRef = useRef(initial?.hero ? JSON.stringify(initial.hero) : "");
+  const [categoriesSection, setCategoriesSection] = useState<CategoriesSection | null>(initial?.categoriesSection ?? null);
+  const categoriesJsonRef = useRef(initial?.categoriesSection ? JSON.stringify(initial.categoriesSection) : "");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -228,7 +114,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [sortBy, setSortBy] = useState("featured");
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
 
-  const productsRef = useRef<Product[]>(PRODUCTS);
+  const productsRef = useRef<Product[]>(initial?.products ?? []);
 
   const applyCatalog = useCallback((incoming: Product[]) => {
     const list = keepIdentity(productsRef.current, incoming);
@@ -243,7 +129,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const applyCategories = useCallback((list: ShopCategory[] | undefined) => {
-    if (!list) return; // older dashboard without categories — keep the built-in list
+    if (!list) return; // older dashboard without categories — keep the current list
     const json = JSON.stringify(list);
     if (json === categoryListJsonRef.current) return;
     categoryListJsonRef.current = json;

@@ -1,58 +1,35 @@
-"use client";
+import { connection } from "next/server";
+import Storefront from "@/components/Storefront";
+import type { InitialShopData } from "@/context/ShopContext";
+import { fetchCatalog } from "@/utils/catalog";
+import { fetchHero } from "@/utils/hero";
+import { fetchCategoriesSection } from "@/utils/categories-section";
 
-import React from "react";
-import { ShopProvider } from "@/context/ShopContext";
-import Header from "@/components/layout/Header";
-import Hero from "@/components/sections/Hero";
-import Categories from "@/components/sections/Categories";
-import BestSellers from "@/components/sections/BestSellers";
-import PromoBanner from "@/components/sections/PromoBanner";
-import WhyChooseUs from "@/components/sections/WhyChooseUs";
-import Collections from "@/components/sections/Collections";
-import About from "@/components/sections/About";
-import SocialProof from "@/components/sections/SocialProof";
-import MasonryGallery from "@/components/sections/MasonryGallery";
-import FAQ from "@/components/sections/FAQ";
-import Newsletter from "@/components/sections/Newsletter";
-import Footer from "@/components/layout/Footer";
-import CartDrawer from "@/components/ui/CartDrawer";
-import WishlistDrawer from "@/components/ui/WishlistDrawer";
-import QuickViewModal from "@/components/ui/QuickViewModal";
-import FomoToasts from "@/components/ui/FomoToasts";
-import StickyAddToCart from "@/components/ui/StickyAddToCart";
+// Don't hold the page for a slow dashboard; the client keeps retrying on its own
+const DASHBOARD_TIMEOUT_MS = 3000;
 
-export default function Home() {
-  return (
-    <ShopProvider>
-      <div className="relative flex flex-col min-h-screen bg-[#F8F5F2]">
-        {/* Sticky Luxury Header */}
-        <Header />
+function withTimeout<T>(promise: Promise<T>): Promise<T | null> {
+  return Promise.race([
+    promise.catch(() => null),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), DASHBOARD_TIMEOUT_MS)),
+  ]);
+}
 
-        {/* Main Content */}
-        <main className="flex-grow">
-          <Hero />
-          <Categories />
-          <BestSellers />
-          {/* <PromoBanner /> */}
-          {/* <WhyChooseUs /> */}
-          {/*  <Collections />
-          <About />
-          <SocialProof />
-          <MasonryGallery />
-          <FAQ /> */}
-          {/* <Newsletter /> */}
-        </main>
+async function loadInitialData(): Promise<InitialShopData> {
+  const [catalog, hero, categoriesSection] = await Promise.all([
+    withTimeout(fetchCatalog()),
+    withTimeout(fetchHero()),
+    withTimeout(fetchCategoriesSection()),
+  ]);
+  return {
+    products: catalog?.products ?? [],
+    categories: catalog?.categories ?? [],
+    hero,
+    categoriesSection,
+  };
+}
 
-        {/* Footer */}
-        <Footer />
-
-        {/* Global Shopping Interactivity Layers */}
-        <CartDrawer />
-        <WishlistDrawer />
-        <QuickViewModal />
-        {/*<FomoToasts />
-        <StickyAddToCart /> */}
-      </div>
-    </ShopProvider>
-  );
+export default async function Home() {
+  await connection(); // catalog is live data — render on every request, never at build time
+  return <Storefront initial={await loadInitialData()} />;
 }
