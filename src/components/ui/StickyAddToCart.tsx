@@ -5,12 +5,14 @@ import { useShop } from "@/context/ShopContext";
 import { ShoppingBag, Star, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
+import { colorImage, discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
+import ColorSwatches from "@/components/ui/ColorSwatches";
 
 export default function StickyAddToCart() {
   const { products, addToCart, language } = useShop();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
 
   // First in-stock product in the live catalog (Aurelia Pendant Necklace by default)
   const flagshipProduct = products.find((p) => p.stock > 0);
@@ -18,6 +20,7 @@ export default function StickyAddToCart() {
   useEffect(() => {
     if (flagshipProduct) {
       setSelectedVariant(flagshipProduct.variants[0] || "Standard");
+      setSelectedColor((prev) => (flagshipProduct.colors.some((c) => c.name === prev) ? prev : flagshipProduct.colors[0]?.name ?? ""));
     }
 
     const handleScroll = () => {
@@ -34,9 +37,10 @@ export default function StickyAddToCart() {
   }, [flagshipProduct]);
 
   if (!flagshipProduct) return null;
+  const image = colorImage(flagshipProduct, selectedColor);
 
   const handleQuickAdd = () => {
-    addToCart(flagshipProduct, 1, selectedVariant);
+    addToCart(flagshipProduct, 1, selectedVariant, selectedColor);
   };
 
   return (
@@ -55,12 +59,12 @@ export default function StickyAddToCart() {
             <div className="flex items-center gap-3">
               <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-[#F5F5F5] border border-[#F5F5F5] hidden sm:block">
                 <Image
-                  src={flagshipProduct.image}
+                  src={image}
                   alt={flagshipProduct.name}
                   fill
                   sizes="48px"
                   className="object-cover object-center"
-                  unoptimized={!isOptimizable(flagshipProduct.image)}
+                  unoptimized={!isOptimizable(image)}
                 />
               </div>
               <div>
@@ -77,6 +81,17 @@ export default function StickyAddToCart() {
 
             {/* Right side: Actions */}
             <div className="flex flex-1 items-center justify-end gap-3 sm:flex-initial">
+              {/* Color Selector */}
+              <div className="hidden sm:block">
+                <ColorSwatches
+                  size="sm"
+                  colors={flagshipProduct.colors}
+                  selected={selectedColor}
+                  onSelect={setSelectedColor}
+                  label={language === "ar" ? "اللون" : "Color"}
+                />
+              </div>
+
               {/* Variant Selector */}
               {flagshipProduct.variants.length > 0 && (
               <select

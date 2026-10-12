@@ -5,29 +5,37 @@ import { useShop } from "@/context/ShopContext";
 import { X, Star, Check, ShoppingBag, Shield, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
+import { colorImage, discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
+import ColorSwatches from "@/components/ui/ColorSwatches";
 
 export default function QuickViewModal() {
-  const { quickViewProduct, setQuickViewProduct, addToCart, wishlist, toggleWishlist, categoryName, language } = useShop();
+  const { quickViewProduct, quickViewColor, setQuickViewProduct, addToCart, wishlist, toggleWishlist, categoryName, language } = useShop();
   const [selectedVariant, setSelectedVariant] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
 
   // Set default variant when product changes
   useEffect(() => {
     if (quickViewProduct) {
       setSelectedVariant(quickViewProduct.variants[0] || "Standard");
+      // Keep the pick across catalog refreshes; on open, start from the color chosen on the card
+      const has = (name: string) => quickViewProduct.colors.some((c) => c.name === name);
+      setSelectedColor((prev) => (has(prev) ? prev : has(quickViewColor) ? quickViewColor : quickViewProduct.colors[0]?.name ?? ""));
       setQuantity(1);
+    } else {
+      setSelectedColor("");
     }
-  }, [quickViewProduct]);
+  }, [quickViewProduct, quickViewColor]);
 
   if (!quickViewProduct) return null;
 
   const inWishlist = wishlist.includes(quickViewProduct.id);
   const soldOut = quickViewProduct.stock <= 0;
   const discount = discountPercent(quickViewProduct);
+  const image = colorImage(quickViewProduct, selectedColor);
 
   const handleAddToCart = () => {
-    addToCart(quickViewProduct, quantity, selectedVariant);
+    addToCart(quickViewProduct, quantity, selectedVariant, selectedColor);
     setQuickViewProduct(null);
   };
 
@@ -61,16 +69,17 @@ export default function QuickViewModal() {
                 <X className="h-4 w-4" />
               </button>
 
-              {/* Left Column: Image */}
-              <div className="relative h-64 md:h-auto md:w-1/2 bg-[#F5F5F5] flex-shrink-0">
+              {/* Left Column: Image, with the color circles under it */}
+              <div className="flex flex-col md:w-1/2 bg-[#F5F5F5] flex-shrink-0">
+              <div className="relative h-64 md:h-auto md:flex-1 md:min-h-[24rem]">
                 <Image
-                  src={quickViewProduct.image}
-                  alt={quickViewProduct.name}
+                  src={image}
+                  alt={selectedColor ? `${quickViewProduct.name} – ${selectedColor}` : quickViewProduct.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover object-center"
                   priority
-                  unoptimized={!isOptimizable(quickViewProduct.image)}
+                  unoptimized={!isOptimizable(image)}
                 />
                 {soldOut ? (
                   <span className="absolute left-4 top-4 rounded bg-[#71717A] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
@@ -81,6 +90,20 @@ export default function QuickViewModal() {
                     Only {quickViewProduct.stock} Left in Stock
                   </span>
                 )}
+              </div>
+
+              {/* Only worth a picker when there's a choice; a single color is selected automatically */}
+              {quickViewProduct.colors.length > 1 && (
+                <div className="flex items-center gap-3 border-t border-[#E4E4E7] bg-white px-4 py-3">
+                  <ColorSwatches
+                    colors={quickViewProduct.colors}
+                    selected={selectedColor}
+                    onSelect={setSelectedColor}
+                    label={language === "ar" ? "اللون" : "Color"}
+                  />
+                  <span className="text-xs font-semibold text-[#111111]">{selectedColor}</span>
+                </div>
+              )}
               </div>
 
               {/* Right Column: Details */}

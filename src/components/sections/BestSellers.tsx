@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useShop, Product } from "@/context/ShopContext";
 import { Star, Heart, Eye, ShoppingBag, SlidersHorizontal, Search, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { translations } from "@/utils/translations";
-import { discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
+import { colorImage, discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
+import ColorSwatches from "@/components/ui/ColorSwatches";
 
 export default function BestSellers() {
   const {
@@ -26,6 +27,9 @@ export default function BestSellers() {
   } = useShop();
 
   const t = translations[language];
+
+  // Color picked on each card (product id → color name); unpicked cards show their first color
+  const [pickedColors, setPickedColors] = useState<Record<string, string>>({});
 
   // Category filter tabs come from the dashboard's category list
   const CATEGORIES = ["All", ...categories.map((c) => c.key)];
@@ -148,6 +152,8 @@ export default function BestSellers() {
               const discount = discountPercent(product);
               const soldOut = product.stock <= 0;
               const soldOutLabel = language === 'ar' ? 'نفدت الكمية' : 'Sold Out';
+              const color = product.colors.some((c) => c.name === pickedColors[product.id]) ? pickedColors[product.id] : product.colors[0]?.name ?? "";
+              const image = colorImage(product, color);
 
               return (
                 <div
@@ -157,13 +163,13 @@ export default function BestSellers() {
                   {/* Image wrapper */}
                   <div className="relative aspect-square bg-[#F5F5F5] overflow-hidden flex-shrink-0">
                     <Image
-                      src={product.image}
-                      alt={product.name}
+                      src={image}
+                      alt={color ? `${product.name} – ${color}` : product.name}
                       fill
                       sizes="(max-width: 768px) 50vw, 25vw"
                       className={`object-cover object-center transition-transform duration-700 group-hover:scale-105 ${soldOut ? "opacity-60 grayscale" : ""}`}
                       loading="lazy"
-                      unoptimized={!isOptimizable(product.image)}
+                      unoptimized={!isOptimizable(image)}
                     />
 
                     {/* Sale / Sold-out Badge */}
@@ -191,14 +197,14 @@ export default function BestSellers() {
                     {/* Quick actions overlay (hidden on mobile, visible on desktop hover) */}
                     <div className="absolute inset-0 bg-[#111111]/30 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 hidden md:flex">
                       <button
-                        onClick={() => setQuickViewProduct(product)}
+                        onClick={() => setQuickViewProduct(product, color)}
                         className="rounded-full bg-white text-[#111111] p-3 hover:bg-[#C9A227] hover:text-white transition-all shadow-lg hover:scale-105 cursor-pointer"
                         title={t.quick_view}
                       >
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => addToCart(product, 1)}
+                        onClick={() => addToCart(product, 1, undefined, color)}
                         disabled={soldOut}
                         className="rounded-full bg-[#111111] text-white p-3 hover:bg-[#C9A227] transition-all shadow-lg hover:scale-105 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 disabled:hover:bg-[#111111]"
                         title={soldOut ? soldOutLabel : "Add to Bag"}
@@ -207,6 +213,18 @@ export default function BestSellers() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Color circles under the image; picking one switches the photo */}
+                  {product.colors.length > 0 && (
+                    <div className="px-4 pt-3">
+                      <ColorSwatches
+                        colors={product.colors}
+                        selected={color}
+                        onSelect={(name) => setPickedColors((prev) => ({ ...prev, [product.id]: name }))}
+                        label={language === 'ar' ? 'اللون' : 'Color'}
+                      />
+                    </div>
+                  )}
 
                   {/* Details block */}
                   <div className="p-4 flex-1 flex flex-col justify-between">
@@ -224,7 +242,7 @@ export default function BestSellers() {
 
                       {/* Title */}
                       <h3
-                        onClick={() => setQuickViewProduct(product)}
+                        onClick={() => setQuickViewProduct(product, color)}
                         className="mt-1.5 font-serif text-sm font-bold text-[#111111] line-clamp-1 hover:text-[#C9A227] cursor-pointer"
                       >
                         {product.name}
@@ -246,7 +264,7 @@ export default function BestSellers() {
                       
                       {/* Mobile action button (Add to Cart direct) */}
                       <button
-                        onClick={() => addToCart(product, 1)}
+                        onClick={() => addToCart(product, 1, undefined, color)}
                         disabled={soldOut}
                         className="rounded-full bg-[#111111] hover:bg-[#C9A227] text-white p-2.5 transition-colors md:hidden cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#111111]"
                         aria-label={soldOut ? soldOutLabel : "Add to cart"}
@@ -256,7 +274,7 @@ export default function BestSellers() {
                       
                       {/* Desktop text action */}
                       <button
-                        onClick={() => setQuickViewProduct(product)}
+                        onClick={() => setQuickViewProduct(product, color)}
                         className="hidden md:block text-[10px] font-bold uppercase tracking-wider text-[#C9A227] hover:text-[#111111] transition-colors cursor-pointer"
                       >
                         {t.quick_view}

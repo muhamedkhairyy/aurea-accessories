@@ -5,6 +5,13 @@ import { fetchCatalog } from "@/utils/catalog";
 import { fetchHero, type HeroContent } from "@/utils/hero";
 import { fetchCategoriesSection, type CategoriesSection } from "@/utils/categories-section";
 
+// A color the shopper can pick (shown as a swatch); `image` is its own photo, or "" to use the product image
+export interface ProductColor {
+  name: string;
+  hex: string;
+  image: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -17,6 +24,7 @@ export interface Product {
   description: string;
   stock: number;
   variants: string[];
+  colors: ProductColor[];
 }
 
 export interface ShopCategory {
@@ -28,6 +36,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   selectedVariant: string;
+  selectedColor?: string; // "" or missing when the product has no colors
 }
 
 interface ShopContextType {
@@ -43,16 +52,17 @@ interface ShopContextType {
   wishlistOpen: boolean;
   setWishlistOpen: (open: boolean) => void;
   quickViewProduct: Product | null;
-  setQuickViewProduct: (product: Product | null) => void;
+  quickViewColor: string; // the color picked on the card that opened Quick View
+  setQuickViewProduct: (product: Product | null, color?: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
-  addToCart: (product: Product, quantity?: number, variant?: string) => void;
-  removeFromCart: (productId: string, variant: string) => void;
-  updateQuantity: (productId: string, quantity: number, variant: string) => void;
+  addToCart: (product: Product, quantity?: number, variant?: string, color?: string) => void;
+  removeFromCart: (productId: string, variant: string, color?: string) => void;
+  updateQuantity: (productId: string, quantity: number, variant: string, color?: string) => void;
   toggleWishlist: (productId: string) => void;
   clearCart: () => void;
   refreshProducts: () => Promise<void>;
@@ -75,13 +85,22 @@ function keepIdentity(prev: Product[], incoming: Product[]): Product[] {
   });
 }
 
+// One bag line per product + variant + color
+const isLine = (item: CartItem, productId: string, variant: string, color = "") =>
+  item.product.id === productId && item.selectedVariant === variant && (item.selectedColor ?? "") === color;
+
 // Keep saved cart lines in step with the live catalog: fresh price/details, capped to stock, removed if gone
 function syncCart(cart: CartItem[], products: Product[]): CartItem[] {
   const next = cart.flatMap((item) => {
     const live = products.find((p) => p.id === item.product.id);
     if (!live || live.stock <= 0) return [];
+    // The picked color was removed from the product (or the line predates colors): drop it rather than guess
+    // Matched case-insensitively like the API; a renamed-case color takes the live spelling
+    const liveColor = live.colors.find((c) => c.name.toLowerCase() === (item.selectedColor ?? "").toLowerCase());
+    if (live.colors.length > 0 && !liveColor) return [];
+    const selectedColor = liveColor?.name ?? item.selectedColor;
     const quantity = Math.min(item.quantity, live.stock);
-    return [live === item.product && quantity === item.quantity ? item : { ...item, product: live, quantity }];
+    return [live === item.product && quantity === item.quantity && selectedColor === item.selectedColor ? item : { ...item, product: live, quantity, selectedColor }];
   });
   return next.length === cart.length && next.every((item, i) => item === cart[i]) ? cart : next;
 }
@@ -108,7 +127,12 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [quickViewProduct, setQuickViewProductState] = useState<Product | null>(null);
+  const [quickViewColor, setQuickViewColor] = useState("");
+  const setQuickViewProduct = useCallback((product: Product | null, color = "") => {
+    setQuickViewColor(color);
+    setQuickViewProductState(product);
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
@@ -125,7 +149,7 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
       const kept = prev.filter((id) => list.some((p) => p.id === id));
       return kept.length === prev.length ? prev : kept;
     });
-    setQuickViewProduct((prev) => (prev ? list.find((p) => p.id === prev.id) ?? null : prev));
+    setQuickViewProductState((prev) => (prev ? list.find((p) => p.id === prev.id) ?? null : prev));
   }, []);
 
   const applyCategories = useCallback((list: ShopCategory[] | undefined) => {
@@ -230,9 +254,10 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
     document.documentElement.lang = language;
   }, [language]);
 
-  const addToCart = (product: Product, quantity = 1, variant?: string) => {
+  const addToCart = (product: Product, quantity = 1, variant?: string, color?: string) => {
     if (product.stock <= 0) return;
     const selectedVariant = variant || product.variants[0] || "Standard";
+    const selectedColor = product.colors.some((c) => c.name === color) ? color! : product.colors[0]?.name ?? "";
     
     setCart((prev) => {
       // Never let the bag hold more units than the dashboard has in stock (across all variants)
@@ -240,32 +265,30 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
       const addable = Math.min(quantity, product.stock - inBag);
       if (addable <= 0) return prev;
 
-      const existingIndex = prev.findIndex(
-        (item) => item.product.id === product.id && item.selectedVariant === selectedVariant
-      );
+      const existingIndex = prev.findIndex((item) => isLine(item, product.id, selectedVariant, selectedColor));
 
       if (existingIndex > -1) {
         return prev.map((item, i) => (i === existingIndex ? { ...item, quantity: item.quantity + addable } : item));
       }
 
-      return [...prev, { product, quantity: addable, selectedVariant }];
+      return [...prev, { product, quantity: addable, selectedVariant, selectedColor }];
     });
     
     // Automatically trigger cart drawer for conversion push
     setCartOpen(true);
   };
 
-  const removeFromCart = (productId: string, variant: string) => {
-    setCart((prev) => prev.filter((item) => !(item.product.id === productId && item.selectedVariant === variant)));
+  const removeFromCart = (productId: string, variant: string, color = "") => {
+    setCart((prev) => prev.filter((item) => !isLine(item, productId, variant, color)));
   };
 
-  const updateQuantity = (productId: string, quantity: number, variant: string) => {
+  const updateQuantity = (productId: string, quantity: number, variant: string, color = "") => {
     if (quantity <= 0) {
-      removeFromCart(productId, variant);
+      removeFromCart(productId, variant, color);
       return;
     }
     setCart((prev) => {
-      const target = prev.find((item) => item.product.id === productId && item.selectedVariant === variant);
+      const target = prev.find((item) => isLine(item, productId, variant, color));
       if (!target) return prev;
       const otherVariants = prev
         .filter((item) => item.product.id === productId && item !== target)
@@ -309,6 +332,7 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
         wishlistOpen,
         setWishlistOpen,
         quickViewProduct,
+        quickViewColor,
         setQuickViewProduct,
         searchQuery,
         setSearchQuery,

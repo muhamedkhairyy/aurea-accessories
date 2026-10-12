@@ -5,7 +5,7 @@ import { useShop } from "@/context/ShopContext";
 import { X, ShoppingBag, Plus, Minus, Trash2, Lock, Truck, CreditCard, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { DASHBOARD_API_URL, formatPrice, isOptimizable } from "@/utils/catalog";
+import { DASHBOARD_API_URL, colorImage, formatPrice, isOptimizable } from "@/utils/catalog";
 
 export default function CartDrawer() {
   const {
@@ -45,6 +45,7 @@ export default function CartDrawer() {
           items: cart.map((item) => ({
             productId: item.product.id,
             variant: item.selectedVariant,
+            color: item.selectedColor || undefined, // omitted for products without colors
             quantity: item.quantity,
           })),
         }),
@@ -286,16 +287,16 @@ export default function CartDrawer() {
                   {/* Items List */}
                   <div className="divide-y divide-[#F5F5F5]">
                     {cart.map((item, index) => (
-                      <div key={`${item.product.id}-${item.selectedVariant}-${index}`} className="flex gap-4 py-4 first:pt-0 last:pb-0">
+                      <div key={`${item.product.id}-${item.selectedVariant}-${item.selectedColor ?? ""}-${index}`} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                         {/* Image */}
                         <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-[#F5F5F5] border border-[#F5F5F5]">
                           <Image
-                            src={item.product.image}
+                            src={colorImage(item.product, item.selectedColor)}
                             alt={item.product.name}
                             fill
                             sizes="80px"
                             className="object-cover object-center"
-                            unoptimized={!isOptimizable(item.product.image)}
+                            unoptimized={!isOptimizable(colorImage(item.product, item.selectedColor))}
                           />
                         </div>
 
@@ -306,21 +307,32 @@ export default function CartDrawer() {
                               <h4 className="font-serif text-[#111111] line-clamp-1">{item.product.name}</h4>
                               <span className="text-[#111111] ml-2">{formatPrice(item.product.price * item.quantity, language)}</span>
                             </div>
-                            <p className="mt-0.5 text-xs text-[#71717A]">{item.selectedVariant}</p>
+                            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-[#71717A]">
+                              {item.selectedColor && (
+                                <>
+                                  <span
+                                    className="inline-block h-3 w-3 rounded-full border border-black/15"
+                                    style={{ backgroundColor: item.product.colors.find((c) => c.name === item.selectedColor)?.hex }}
+                                  />
+                                  <span>{item.selectedColor} ·</span>
+                                </>
+                              )}
+                              <span>{item.selectedVariant}</span>
+                            </p>
                           </div>
 
                           <div className="flex items-center justify-between text-xs mt-2">
                             {/* Quantity Controls */}
                             <div className="flex items-center rounded-full border border-[#E4E4E7] bg-white px-2 py-1">
                               <button
-                                onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedVariant)}
+                                onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedVariant, item.selectedColor)}
                                 className="p-1 hover:text-[#C9A227] transition-colors"
                               >
                                 <Minus className="h-3 w-3" />
                               </button>
                               <span className="w-6 text-center font-medium text-[#111111]">{item.quantity}</span>
                               <button
-                                onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedVariant)}
+                                onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedVariant, item.selectedColor)}
                                 className="p-1 hover:text-[#C9A227] transition-colors"
                               >
                                 <Plus className="h-3 w-3" />
@@ -329,7 +341,7 @@ export default function CartDrawer() {
 
                             {/* Remove button */}
                             <button
-                              onClick={() => removeFromCart(item.product.id, item.selectedVariant)}
+                              onClick={() => removeFromCart(item.product.id, item.selectedVariant, item.selectedColor)}
                               className="text-[#71717A] hover:text-[#EF4444] transition-colors p-1"
                               aria-label="Remove item"
                             >

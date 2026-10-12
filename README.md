@@ -24,7 +24,7 @@ Products, prices, stock, images and the content of the hero and Categories secti
 cd ../aurea-dashboard && npm start
 ```
 
-The dashboard's API URL defaults to `http://localhost:4000`. Override it with `NEXT_PUBLIC_DASHBOARD_API_URL` in `.env.local`. The shop has no built-in catalog: if the dashboard isn't running, no products are shown and checkout shows an error.
+The dashboard's API URL defaults to `http://localhost:4000` in development and `https://admin.aureaaccessories.com` in production builds. Override it with `NEXT_PUBLIC_DASHBOARD_API_URL` in `.env.local`. The shop has no built-in catalog: if the dashboard isn't running, no products are shown and checkout shows an error.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
