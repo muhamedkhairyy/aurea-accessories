@@ -10,7 +10,7 @@ import { isOptimizable, resolveImage } from "@/utils/catalog";
 import type { HeroCopy, HeroContent } from "@/utils/hero";
 
 const BADGE_ICONS = [Droplets, Sparkles, ShieldCheck, ShieldCheck, Sparkles, Truck, CreditCard];
-const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1543294001-f7cbfe92237e?q=80&w=1200";
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=1200";
 const SHOW_ALL: HeroContent["show"] = { promoBadge: true, secondaryCta: true, trust: true, stockBadge: true, customers: true, badges: true };
 
 // Built-in copy, used until (or if) the dashboard's hero content loads

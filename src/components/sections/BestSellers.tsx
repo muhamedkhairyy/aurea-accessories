@@ -58,7 +58,7 @@ export default function BestSellers() {
   return (
     <section id="bestsellers" className="py-16 bg-[#F8F5F2]">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">
           <span className="text-xs font-bold uppercase tracking-widest text-[#C9A227]">
@@ -80,11 +80,10 @@ export default function BestSellers() {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`rounded-full px-4.5 py-2 text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-                  selectedCategory === cat
-                    ? "bg-[#111111] text-white shadow-md"
-                    : "bg-white text-[#71717A] border border-[#E4E4E7] hover:border-[#111111] hover:text-[#111111]"
-                }`}
+                className={`rounded-full px-4.5 py-2 text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${selectedCategory === cat
+                  ? "bg-[#111111] text-white shadow-md"
+                  : "bg-white text-[#71717A] border border-[#E4E4E7] hover:border-[#111111] hover:text-[#111111]"
+                  }`}
               >
                 {cat === "All" ? (language === 'ar' ? 'الكل' : 'All') : categoryName(cat)}
               </button>
@@ -186,9 +185,8 @@ export default function BestSellers() {
                     {/* Wishlist toggle icon */}
                     <button
                       onClick={() => toggleWishlist(product.id)}
-                      className={`absolute right-3 top-3 rounded-full bg-white p-2 shadow-md transition-all hover:scale-110 cursor-pointer ${
-                        inWishlist ? "text-[#EF4444]" : "text-[#71717A] hover:text-[#EF4444]"
-                      }`}
+                      className={`absolute right-3 top-3 rounded-full bg-white p-2 shadow-md transition-all hover:scale-110 cursor-pointer ${inWishlist ? "text-[#EF4444]" : "text-[#71717A] hover:text-[#EF4444]"
+                        }`}
                       aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
                     >
                       <Heart className={`h-4 w-4 ${inWishlist ? "fill-current" : ""}`} />
@@ -247,7 +245,7 @@ export default function BestSellers() {
                       >
                         {product.name}
                       </h3>
-                      
+
                       <p className="text-[10px] text-[#71717A] font-semibold tracking-wider mt-0.5">
                         {categoryName(product.category)}
                       </p>
@@ -261,7 +259,7 @@ export default function BestSellers() {
                           <span className="text-[10px] text-[#71717A] line-through ml-1.5">{formatPrice(product.oldPrice, language)}</span>
                         )}
                       </div>
-                      
+
                       {/* Mobile action button (Add to Cart direct) */}
                       <button
                         onClick={() => addToCart(product, 1, undefined, color)}
@@ -271,7 +269,7 @@ export default function BestSellers() {
                       >
                         <ShoppingBag className="h-3.5 w-3.5" />
                       </button>
-                      
+
                       {/* Desktop text action */}
                       <button
                         onClick={() => setQuickViewProduct(product, color)}

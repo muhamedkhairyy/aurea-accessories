@@ -30,7 +30,7 @@ export default function Collections() {
     {
       title: t.col_2_title,
       subtitle: t.col_2_desc,
-      image: "https://images.unsplash.com/photo-1543294001-f7cbfe92237e?q=80&w=600",
+      image: "https://images.unsplash.com/photo-1630019852942-f89202989a59?q=80&w=600",
       categoryFilter: "All",
       searchFilter: "Gold"
     },

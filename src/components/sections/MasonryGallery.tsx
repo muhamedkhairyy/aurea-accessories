@@ -30,7 +30,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
     aspect: "aspect-[3/4]"
   },
   {
-    image: "https://images.unsplash.com/photo-1588444839799-eb642997409f?q=80&w=600",
+    image: "https://images.unsplash.com/photo-1630019852942-f89202989a59?q=80&w=600",
     handle: "@olivia_vibe",
     source: "TikTok",
     aspect: "aspect-[4/5]"

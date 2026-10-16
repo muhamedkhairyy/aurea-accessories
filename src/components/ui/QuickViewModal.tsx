@@ -71,39 +71,28 @@ export default function QuickViewModal() {
 
               {/* Left Column: Image, with the color circles under it */}
               <div className="flex flex-col md:w-1/2 bg-[#F5F5F5] flex-shrink-0">
-              <div className="relative h-64 md:h-auto md:flex-1 md:min-h-[24rem]">
-                <Image
-                  src={image}
-                  alt={selectedColor ? `${quickViewProduct.name} – ${selectedColor}` : quickViewProduct.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover object-center"
-                  priority
-                  unoptimized={!isOptimizable(image)}
-                />
-                {soldOut ? (
-                  <span className="absolute left-4 top-4 rounded bg-[#71717A] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                    Sold Out
-                  </span>
-                ) : quickViewProduct.stock <= 8 && (
-                  <span className="absolute left-4 top-4 rounded bg-[#EF4444] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                    Only {quickViewProduct.stock} Left in Stock
-                  </span>
-                )}
-              </div>
-
-              {/* Only worth a picker when there's a choice; a single color is selected automatically */}
-              {quickViewProduct.colors.length > 1 && (
-                <div className="flex items-center gap-3 border-t border-[#E4E4E7] bg-white px-4 py-3">
-                  <ColorSwatches
-                    colors={quickViewProduct.colors}
-                    selected={selectedColor}
-                    onSelect={setSelectedColor}
-                    label={language === "ar" ? "اللون" : "Color"}
+                <div className="relative h-64 md:h-auto md:flex-1 md:min-h-[24rem]">
+                  <Image
+                    src={image}
+                    alt={selectedColor ? `${quickViewProduct.name} – ${selectedColor}` : quickViewProduct.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover object-center"
+                    priority
+                    unoptimized={!isOptimizable(image)}
                   />
-                  <span className="text-xs font-semibold text-[#111111]">{selectedColor}</span>
+                  {soldOut ? (
+                    <span className="absolute left-4 top-4 rounded bg-[#71717A] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                      Sold Out
+                    </span>
+                  ) : quickViewProduct.stock <= 8 && (
+                    <span className="absolute left-4 top-4 rounded bg-[#EF4444] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                      Only {quickViewProduct.stock} Left in Stock
+                    </span>
+                  )}
                 </div>
-              )}
+
+
               </div>
 
               {/* Right Column: Details */}
@@ -118,7 +107,7 @@ export default function QuickViewModal() {
                   </h3>
 
                   {/* Rating */}
-                  <div className="mt-2.5 flex items-center gap-1.5">
+                  {quickViewProduct.rating > 0 && <div className="mt-2.5 flex items-center gap-1.5">
                     <div className="flex text-[#C9A227]">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="h-4 w-4 fill-current" />
@@ -126,7 +115,7 @@ export default function QuickViewModal() {
                     </div>
                     <span className="text-xs font-semibold text-[#111111]">{quickViewProduct.rating}</span>
                     <span className="text-xs text-[#71717A]">({quickViewProduct.reviewsCount} verified reviews)</span>
-                  </div>
+                  </div>}
 
                   {/* Price */}
                   <div className="mt-4 flex items-baseline gap-3">
@@ -157,8 +146,8 @@ export default function QuickViewModal() {
                             key={v}
                             onClick={() => setSelectedVariant(v)}
                             className={`rounded-full border px-4 py-2 text-xs font-medium transition-all ${selectedVariant === v
-                                ? "border-[#111111] bg-[#111111] text-white"
-                                : "border-[#E4E4E7] bg-white text-[#111111] hover:border-[#111111]"
+                              ? "border-[#111111] bg-[#111111] text-white"
+                              : "border-[#E4E4E7] bg-white text-[#111111] hover:border-[#111111]"
                               }`}
                           >
                             {v}
@@ -167,7 +156,17 @@ export default function QuickViewModal() {
                       </div>
                     </div>
                   )}
-
+                  {/* Only worth a picker when there's a choice; a single color is selected automatically */}
+                  {quickViewProduct.colors.length > 1 && (
+                    <div className="flex items-center gap-3 bg-white  py-3">
+                      <ColorSwatches
+                        colors={quickViewProduct.colors}
+                        selected={selectedColor}
+                        onSelect={setSelectedColor}
+                        label={language === "ar" ? "اللون" : "Color"}
+                      />
+                    </div>
+                  )}
                   {/* Quantity Selector */}
                   <div className="mt-6 flex items-center gap-3">
                     <span className="text-xs font-bold uppercase tracking-wider text-[#71717A]">Quantity</span>
@@ -204,8 +203,8 @@ export default function QuickViewModal() {
                     <button
                       onClick={() => toggleWishlist(quickViewProduct.id)}
                       className={`rounded-full border p-3.5 transition-all ${inWishlist
-                          ? "border-[#EF4444] bg-[#EF4444]/5 text-[#EF4444]"
-                          : "border-[#E4E4E7] bg-white text-[#71717A] hover:text-[#111111] hover:border-[#111111]"
+                        ? "border-[#EF4444] bg-[#EF4444]/5 text-[#EF4444]"
+                        : "border-[#E4E4E7] bg-white text-[#71717A] hover:text-[#111111] hover:border-[#111111]"
                         }`}
                       aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
                     >
