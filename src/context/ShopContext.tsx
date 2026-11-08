@@ -274,6 +274,27 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
       return [...prev, { product, quantity: addable, selectedVariant, selectedColor }];
     });
     
+    // Google Tag Manager - GA4 add_to_cart event
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ ecommerce: null });
+      window.dataLayer.push({
+        event: "add_to_cart",
+        ecommerce: {
+          currency: "EGP",
+          value: product.price * quantity,
+          items: [
+            {
+              item_id: product.id,
+              item_name: product.name,
+              price: product.price,
+              quantity: quantity,
+            },
+          ],
+        },
+      });
+    }
+
     // Automatically trigger cart drawer for conversion push
     setCartOpen(true);
   };
