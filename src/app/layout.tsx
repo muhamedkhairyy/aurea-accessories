@@ -15,6 +15,7 @@ const inter = Inter({
 
 // TikTok Pixel for ad tracking (base code from TikTok Ads Manager); ttq.page() records each page view
 const TIKTOK_PIXEL_ID = "DB960Q3C77UC7FTGLBQ0";
+const GTM_ID = "GTM-M5T8CNWX";
 
 export const metadata: Metadata = {
   title: "Aurèa Accessories | Luxury Stainless Steel Jewelry",
@@ -40,6 +41,18 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#F8F5F2] font-sans text-[#111111] antialiased">
         {children}
       </body>
+      {/* Google Tag Manager */}
+      <Script
+        src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-tag-manager" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+        `}
+      </Script>
       <Script id="tiktok-pixel" strategy="afterInteractive">
         {`
 !function (w, d, t) {
