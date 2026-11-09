@@ -56,6 +56,7 @@ export const translations = {
 
     // Product Card
     quick_view: "Quick View",
+    view_details: "View Details",
     add_to_cart: "Add to Cart",
     out_of_stock: "Out of Stock",
     reviews: "reviews",
@@ -102,7 +103,7 @@ export const translations = {
     collections_title: "Explore Collections",
     collections_subtitle: "Discover style blocks curated specifically to match and elevate your daily wardrobe.",
     collections_explore: "Explore Pieces",
-    
+
     col_1_title: "Everyday Essentials",
     col_1_desc: "Timeless designs that fit any day.",
     col_2_title: "18K Gold Collection",
@@ -181,6 +182,95 @@ export const translations = {
     // Wishlist
     wishlist_title: "Your Wishlist",
     wishlist_empty: "Your wishlist is empty.",
+
+    // Shared shop labels
+    continue_shopping: "Continue Shopping",
+    start_shopping: "Start Shopping",
+    add_to_bag: "Add to Bag",
+    remove: "Remove",
+    remove_item: "Remove item",
+    each: "each",
+    decrease_qty: "Decrease quantity",
+    increase_qty: "Increase quantity",
+    add_to_wishlist: "Add to wishlist",
+    remove_from_wishlist: "Remove from wishlist",
+    badge_waterproof: "Waterproof",
+    badge_waterproof_desc: "Won't rust",
+    badge_tarnish: "Anti-Tarnish",
+    badge_tarnish_desc: "Lifetime shine",
+    badge_hypo: "Hypoallergenic",
+    badge_hypo_desc: "Safe for skin",
+
+    // Cart page
+    cart_heading: (n: number) => `Your Bag (${n})`,
+    cart_empty_title: "Your bag is empty",
+    cart_empty_desc: "Add pieces from our collection to begin your luxury shine journey.",
+    cart_notice: (cairo: string, other: string, min: string) =>
+      `Shipping: ${cairo} to Cairo & Giza, ${other} to other governorates. A transfer of at least ${min} confirms your order; the rest is paid on delivery.`,
+
+    // Checkout form
+    delivery_info_title: "Delivery Information",
+    delivery_info_desc: "Where should we deliver your order?",
+    label_name: "Full Name *",
+    label_phone: "Mobile Number *",
+    label_governorate: "Governorate *",
+    label_city: "City / Area *",
+    label_address: "Shipping Address *",
+    ph_name: "e.g. Sarah Ahmed",
+    ph_phone: "e.g. 010 0000 0000",
+    ph_city: "e.g. Nasr City",
+    ph_address: "Street Name, Building No., Floor, Apartment",
+    select_governorate: "Select governorate",
+    shipping_to: (place: string, fee: string) => `Shipping to ${place}: ${fee}`,
+    payment_proof_title: "Payment Proof",
+    proof_required_notice: "A payment screenshot is required to place your order",
+    proof_instructions: (min: string) =>
+      `Transfer at least ${min} by bank transfer or InstaPay or vodafon cash on 01123846422, then upload a screenshot of the receipt. Any remaining amount is paid in cash on delivery.`,
+    transfer_contact: "for details Message us on whats app 01038307851",
+    label_transfer: "Transfer Amount (EGP) *",
+    ph_transfer: (min: number) => `Min. ${min}`,
+    back_to_bag: "Back to Bag",
+
+    // Order summary
+    order_summary: "Order Summary",
+    subtotal: "Subtotal",
+    shipping: "Shipping",
+    total: "Total",
+    total_plus_shipping: (amount: string) => `${amount} + shipping`,
+    transfer_amount: "Transfer Amount",
+    due_on_delivery: "Due on delivery",
+    payment_screenshot: "Payment Screenshot",
+    required: "Required",
+    proceed_checkout: "Proceed to Checkout",
+    place_order: "Place Order",
+    securing_order: "Securing your order...",
+    complete_fields: "Please complete the highlighted fields",
+    secure_ssl: "Secure SSL Encryption Checkout",
+
+    // Checkout errors
+    err_reach_server: "We couldn't reach our store server. Please try again in a moment.",
+    err_place_order: "We couldn't place your order. Please try again.",
+    err_proof_too_large: "The payment screenshot is too large. Please try a smaller image.",
+
+    // Order placed
+    order_received: "Order Received!",
+    order_thanks: (name: string, id: string) => `Thank you, ${name}. Your order ${id} is registered.`,
+    order_pending_verification: "We'll confirm it once we've verified your transfer",
+    delivery_details: "🚚 Delivery Details",
+    address_label: "Address",
+    phone_label: "Phone",
+    transferred: "Transferred",
+    estimated_delivery: "Estimated Delivery: 2-3 Business Days",
+
+    // Wishlist drawer
+    wishlist_heading: (n: number) => `Your Wishlist (${n})`,
+    wishlist_empty_title: "Your wishlist is empty",
+    wishlist_empty_desc: "Tap the heart icon on any jewelry piece to save it to your wishlist.",
+    wishlist_browse: "Browse Pieces",
+    close: "Close",
+
+    // Misc
+    hero_image_alt: "Luxury lifestyle - Woman styling stainless steel gold necklaces and rings",
   },
   ar: {
     // Header
@@ -239,6 +329,7 @@ export const translations = {
 
     // Product Card
     quick_view: "نظرة سريعة",
+    view_details: "عرض التفاصيل",
     add_to_cart: "أضف للسلة",
     out_of_stock: "نفدت الكمية",
     reviews: "تقييم",
@@ -275,7 +366,7 @@ export const translations = {
     collections_title: "استكشفي التشكيلات",
     collections_subtitle: "اكتشفي قطعاً مختارة بعناية لتناسب وترتقي بإطلالتك اليومية.",
     collections_explore: "تصفحي القطع",
-    
+
     col_1_title: "أساسيات يومية",
     col_1_desc: "تصاميم كلاسيكية تناسب كل يوم.",
     col_2_title: "مجموعة الذهب 18",
@@ -365,5 +456,94 @@ export const translations = {
     // Wishlist
     wishlist_title: "المفضلة",
     wishlist_empty: "المفضلة فارغة.",
+
+    // Shared shop labels
+    continue_shopping: "متابعة التسوق",
+    start_shopping: "ابدئي التسوق",
+    add_to_bag: "أضيفي للسلة",
+    remove: "إزالة",
+    remove_item: "إزالة المنتج",
+    each: "للقطعة",
+    decrease_qty: "تقليل الكمية",
+    increase_qty: "زيادة الكمية",
+    add_to_wishlist: "أضيفي للمفضلة",
+    remove_from_wishlist: "إزالة من المفضلة",
+    badge_waterproof: "مقاوم للماء",
+    badge_waterproof_desc: "لا يصدأ",
+    badge_tarnish: "لا يتغير لونه",
+    badge_tarnish_desc: "لمعان يدوم",
+    badge_hypo: "آمن على البشرة",
+    badge_hypo_desc: "لا يسبب حساسية",
+
+    // Cart page
+    cart_heading: (n: number) => `سلتك (${n})`,
+    cart_empty_title: "سلتك فارغة",
+    cart_empty_desc: "أضيفي قطعاً من مجموعتنا لتبدئي رحلة اللمعان الفاخر.",
+    cart_notice: (cairo: string, other: string, min: string) =>
+      `الشحن: ${cairo} للقاهرة والجيزة، و${other} لباقي المحافظات. يتم تأكيد طلبك بتحويل ${min} على الأقل، والباقي يُدفع عند الاستلام.`,
+
+    // Checkout form
+    delivery_info_title: "بيانات التوصيل",
+    delivery_info_desc: "أين نوصّل طلبك؟",
+    label_name: "الاسم بالكامل *",
+    label_phone: "رقم الموبايل *",
+    label_governorate: "المحافظة *",
+    label_city: "المدينة / المنطقة *",
+    label_address: "عنوان الشحن *",
+    ph_name: "مثال: سارة أحمد",
+    ph_phone: "مثال: 010 0000 0000",
+    ph_city: "مثال: مدينة نصر",
+    ph_address: "اسم الشارع، رقم العمارة، الدور، الشقة",
+    select_governorate: "اختاري المحافظة",
+    shipping_to: (place: string, fee: string) => `الشحن إلى ${place}: ${fee}`,
+    payment_proof_title: "إثبات الدفع",
+    proof_required_notice: "صورة إيصال التحويل مطلوبة لإتمام الطلب",
+    proof_instructions: (min: string) =>
+      `حوّلي ${min} على الأقل عن طريق تحويل بنكي أو إنستاباي او فودافون كاش علي 01123846422، ثم ارفعي صورة الإيصال. أي مبلغ متبقٍ يُدفع نقداً عند الاستلام.`,
+    transfer_contact: "للتفاصيل علي واتس اب 01038307851",
+    label_transfer: "المبلغ المحوَّل (ج.م) *",
+    ph_transfer: (min: number) => `الحد الأدنى ${min}`,
+    back_to_bag: "العودة للسلة",
+
+    // Order summary
+    order_summary: "ملخص الطلب",
+    subtotal: "المجموع الفرعي",
+    shipping: "الشحن",
+    total: "الإجمالي",
+    total_plus_shipping: (amount: string) => `${amount} + الشحن`,
+    transfer_amount: "المبلغ المحوَّل",
+    due_on_delivery: "المتبقي عند الاستلام",
+    payment_screenshot: "صورة الإيصال",
+    required: "مطلوب",
+    proceed_checkout: "إتمام الطلب",
+    place_order: "تأكيد الطلب",
+    securing_order: "جارٍ تسجيل طلبك...",
+    complete_fields: "أكملي الحقول المطلوبة أعلاه",
+    secure_ssl: "دفع آمن ومشفّر",
+
+    // Checkout errors
+    err_reach_server: "تعذّر الاتصال بالمتجر. حاولي مرة أخرى بعد قليل.",
+    err_place_order: "تعذّر تسجيل طلبك. حاولي مرة أخرى.",
+    err_proof_too_large: "صورة الإيصال كبيرة جداً. جرّبي صورة أصغر.",
+
+    // Order placed
+    order_received: "تم استلام طلبك!",
+    order_thanks: (name: string, id: string) => `شكراً يا ${name}. تم تسجيل طلبك رقم ${id}.`,
+    order_pending_verification: "سنؤكد طلبك بعد مراجعة التحويل",
+    delivery_details: "🚚 بيانات التوصيل",
+    address_label: "العنوان",
+    phone_label: "الموبايل",
+    transferred: "المبلغ المحوَّل",
+    estimated_delivery: "مدة التوصيل المتوقعة: 2-3 أيام عمل",
+
+    // Wishlist drawer
+    wishlist_heading: (n: number) => `المفضلة (${n})`,
+    wishlist_empty_title: "المفضلة فارغة",
+    wishlist_empty_desc: "اضغطي على أيقونة القلب في أي قطعة لحفظها في المفضلة.",
+    wishlist_browse: "تصفحي القطع",
+    close: "إغلاق",
+
+    // Misc
+    hero_image_alt: "أسلوب حياة فاخر - امرأة ترتدي قلادات وخواتم ستانلس ستيل ذهبية",
   }
 };

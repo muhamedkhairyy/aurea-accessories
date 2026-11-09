@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { useShop, Product } from "@/context/ShopContext";
 import { Star, Heart, Eye, ShoppingBag, SlidersHorizontal, Search, RefreshCw } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { translations } from "@/utils/translations";
-import { colorImage, discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
+import { optionLabel, colorImage, discountPercent, formatPrice, isOptimizable } from "@/utils/catalog";
 import ColorSwatches from "@/components/ui/ColorSwatches";
 
 export default function BestSellers() {
@@ -13,7 +14,6 @@ export default function BestSellers() {
     products,
     wishlist,
     toggleWishlist,
-    setQuickViewProduct,
     addToCart,
     selectedCategory,
     setSelectedCategory,
@@ -153,6 +153,7 @@ export default function BestSellers() {
               const soldOutLabel = language === 'ar' ? 'نفدت الكمية' : 'Sold Out';
               const color = product.colors.some((c) => c.name === pickedColors[product.id]) ? pickedColors[product.id] : product.colors[0]?.name ?? "";
               const image = colorImage(product, color);
+              const href = `/product/${product.id}${color ? `?color=${encodeURIComponent(color)}` : ""}`;
 
               return (
                 <div
@@ -161,15 +162,17 @@ export default function BestSellers() {
                 >
                   {/* Image wrapper */}
                   <div className="relative aspect-square bg-[#F5F5F5] overflow-hidden flex-shrink-0">
+                    <Link href={href} className="absolute inset-0" aria-label={product.name}>
                     <Image
                       src={image}
-                      alt={color ? `${product.name} – ${color}` : product.name}
+                      alt={color ? `${product.name} – ${optionLabel(color, language)}` : product.name}
                       fill
                       sizes="(max-width: 768px) 50vw, 25vw"
                       className={`object-cover object-center transition-transform duration-700 group-hover:scale-105 ${soldOut ? "opacity-60 grayscale" : ""}`}
                       loading="lazy"
                       unoptimized={!isOptimizable(image)}
                     />
+                    </Link>
 
                     {/* Sale / Sold-out Badge */}
                     {soldOut ? (
@@ -187,25 +190,25 @@ export default function BestSellers() {
                       onClick={() => toggleWishlist(product.id)}
                       className={`absolute right-3 top-3 rounded-full bg-white p-2 shadow-md transition-all hover:scale-110 cursor-pointer ${inWishlist ? "text-[#EF4444]" : "text-[#71717A] hover:text-[#EF4444]"
                         }`}
-                      aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                      aria-label={inWishlist ? t.remove_from_wishlist : t.add_to_wishlist}
                     >
                       <Heart className={`h-4 w-4 ${inWishlist ? "fill-current" : ""}`} />
                     </button>
 
                     {/* Quick actions overlay (hidden on mobile, visible on desktop hover) */}
-                    <div className="absolute inset-0 bg-[#111111]/30 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 hidden md:flex">
-                      <button
-                        onClick={() => setQuickViewProduct(product, color)}
+                    <div className="absolute inset-0 bg-[#111111]/30 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 hidden md:flex pointer-events-none [&>*]:pointer-events-auto">
+                      <Link
+                        href={href}
                         className="rounded-full bg-white text-[#111111] p-3 hover:bg-[#C9A227] hover:text-white transition-all shadow-lg hover:scale-105 cursor-pointer"
-                        title={t.quick_view}
+                        title={t.view_details}
                       >
                         <Eye className="h-4 w-4" />
-                      </button>
+                      </Link>
                       <button
                         onClick={() => addToCart(product, 1, undefined, color)}
                         disabled={soldOut}
                         className="rounded-full bg-[#111111] text-white p-3 hover:bg-[#C9A227] transition-all shadow-lg hover:scale-105 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 disabled:hover:bg-[#111111]"
-                        title={soldOut ? soldOutLabel : "Add to Bag"}
+                        title={soldOut ? soldOutLabel : t.add_to_bag}
                       >
                         <ShoppingBag className="h-4 w-4" />
                       </button>
@@ -239,11 +242,8 @@ export default function BestSellers() {
                       </div>
 
                       {/* Title */}
-                      <h3
-                        onClick={() => setQuickViewProduct(product, color)}
-                        className="mt-1.5 font-serif text-sm font-bold text-[#111111] line-clamp-1 hover:text-[#C9A227] cursor-pointer"
-                      >
-                        {product.name}
+                      <h3 className="mt-1.5 font-serif text-sm font-bold text-[#111111] line-clamp-1 hover:text-[#C9A227]">
+                        <Link href={href}>{product.name}</Link>
                       </h3>
 
                       <p className="text-[10px] text-[#71717A] font-semibold tracking-wider mt-0.5">
@@ -265,18 +265,18 @@ export default function BestSellers() {
                         onClick={() => addToCart(product, 1, undefined, color)}
                         disabled={soldOut}
                         className="rounded-full bg-[#111111] hover:bg-[#C9A227] text-white p-2.5 transition-colors md:hidden cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#111111]"
-                        aria-label={soldOut ? soldOutLabel : "Add to cart"}
+                        aria-label={soldOut ? soldOutLabel : t.add_to_bag}
                       >
                         <ShoppingBag className="h-3.5 w-3.5" />
                       </button>
 
                       {/* Desktop text action */}
-                      <button
-                        onClick={() => setQuickViewProduct(product, color)}
+                      <Link
+                        href={href}
                         className="hidden md:block text-[10px] font-bold uppercase tracking-wider text-[#C9A227] hover:text-[#111111] transition-colors cursor-pointer"
                       >
-                        {t.quick_view}
-                      </button>
+                        {t.view_details}
+                      </Link>
                     </div>
                   </div>
 

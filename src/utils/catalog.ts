@@ -41,3 +41,19 @@ export async function fetchCatalog(): Promise<{ products: Product[]; categories:
   }));
   return { products, categories: data.categoryList };
 }
+
+// Arabic display names for common color / style options typed in the dashboard (display only —
+// orders always send the original name). Unknown names are shown as typed.
+const OPTION_NAMES_AR: Record<string, string> = {
+  gold: "ذهبي", "rose gold": "ذهبي وردي", "rose-gold": "ذهبي وردي", silver: "فضي", white: "أبيض", black: "أسود",
+  red: "أحمر", pink: "وردي", bink: "وردي", blue: "أزرق", "light blue": "أزرق فاتح", "navy": "كحلي", green: "أخضر",
+  purple: "بنفسجي", yellow: "أصفر", orange: "برتقالي", brown: "بني", beige: "بيج", grey: "رمادي", gray: "رمادي",
+  multicolor: "متعدد الألوان", "multi color": "متعدد الألوان", standard: "قياسي",
+};
+export function optionLabel(name: string, language: "en" | "ar"): string {
+  if (language !== "ar") return name;
+  const key = name.trim().toLowerCase();
+  if (OPTION_NAMES_AR[key]) return OPTION_NAMES_AR[key];
+  const size = key.match(/^size\s*(.+)$/); // "Size 7" → "مقاس 7"
+  return size ? `مقاس ${size[1]}` : name;
+}

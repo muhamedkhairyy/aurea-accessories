@@ -6,6 +6,8 @@ import { X, Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { formatPrice, isOptimizable } from "@/utils/catalog";
+import { translations } from "@/utils/translations";
+import type { Product } from "@/context/ShopContext";
 
 export default function WishlistDrawer() {
   const {
@@ -19,9 +21,10 @@ export default function WishlistDrawer() {
     language,
   } = useShop();
 
+  const t = translations[language];
   const wishlistProducts = products.filter((p) => wishlist.includes(p.id));
 
-  const handleMoveToCart = (product: any) => {
+  const handleMoveToCart = (product: Product) => {
     addToCart(product, 1);
     toggleWishlist(product.id); // Remove from wishlist on add
   };
@@ -51,11 +54,12 @@ export default function WishlistDrawer() {
             <div className="flex items-center justify-between border-b border-[#F5F5F5] px-6 py-5">
               <div className="flex items-center gap-2">
                 <Heart className="h-5 w-5 fill-[#EF4444] text-[#EF4444]" />
-                <h2 className="font-serif text-xl font-semibold tracking-tight">Your Wishlist ({wishlistProducts.length})</h2>
+                <h2 className="font-serif text-xl font-semibold tracking-tight">{t.wishlist_heading(wishlistProducts.length)}</h2>
               </div>
               <button
                 onClick={() => setWishlistOpen(false)}
                 className="rounded-full p-2 transition-colors hover:bg-[#F5F5F5]"
+                aria-label={t.close}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -69,15 +73,15 @@ export default function WishlistDrawer() {
                   <div className="rounded-full bg-[#F5F5F5] p-6 text-[#71717A]">
                     <Heart className="h-10 w-10" />
                   </div>
-                  <h3 className="mt-4 font-serif text-lg font-medium text-[#111111]">Your wishlist is empty</h3>
+                  <h3 className="mt-4 font-serif text-lg font-medium text-[#111111]">{t.wishlist_empty_title}</h3>
                   <p className="mt-2 text-xs text-[#71717A] max-w-[240px]">
-                    Tap the heart icon on any jewelry piece to save it to your wishlist.
+                    {t.wishlist_empty_desc}
                   </p>
                   <button
                     onClick={() => setWishlistOpen(false)}
                     className="mt-6 rounded-full bg-[#111111] px-6 py-2.5 text-xs font-semibold text-white hover:bg-[#C9A227] transition-colors shadow-md"
                   >
-                    Browse Pieces
+                    {t.wishlist_browse}
                   </button>
                 </div>
               ) : (
@@ -115,14 +119,14 @@ export default function WishlistDrawer() {
                             className="rounded-full bg-[#111111] hover:bg-[#C9A227] text-white px-4 py-1.5 font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
                           >
                             <ShoppingBag className="h-3 w-3" />
-                            <span>Add to Bag</span>
+                            <span>{t.add_to_bag}</span>
                           </button>
 
                           {/* Delete from wishlist */}
                           <button
                             onClick={() => toggleWishlist(product.id)}
                             className="text-[#71717A] hover:text-[#EF4444] transition-colors p-1"
-                            aria-label="Remove item"
+                            aria-label={t.remove_item}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -141,7 +145,7 @@ export default function WishlistDrawer() {
                   onClick={() => setWishlistOpen(false)}
                   className="w-full rounded-full border border-[#111111] py-3 text-xs font-bold uppercase tracking-widest text-[#111111] hover:bg-[#111111] hover:text-white transition-colors"
                 >
-                  Continue Shopping
+                  {t.continue_shopping}
                 </button>
               </div>
             )}

@@ -16,7 +16,7 @@ const SHOW_ALL: HeroContent["show"] = { promoBadge: true, secondaryCta: true, tr
 // Built-in copy, used until (or if) the dashboard's hero content loads
 function builtInCopy(t: (typeof translations)["en"]): HeroCopy {
   return {
-    imageAlt: "Luxury lifestyle - Woman styling stainless steel gold necklaces and rings",
+    imageAlt: t.hero_image_alt,
     promoBadge: t.hero_promo_badge,
     headline1: t.hero_headline_1,
     headline2: t.hero_headline_2,

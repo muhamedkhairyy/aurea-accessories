@@ -124,7 +124,7 @@ export default function Categories() {
               {/* Category Image */}
               <Image
                 src={category.image}
-                alt={`${category.name} collection`}
+                alt={language === "ar" ? `تشكيلة ${category.name}` : `${category.name} collection`}
                 fill
                 sizes="(max-width: 768px) 50vw, 20vw"
                 className="object-cover object-center transition-transform duration-700 group-hover:scale-105"

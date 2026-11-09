@@ -23,9 +23,14 @@ export default function NotFound() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#C9A227]/10 text-[#C9A227]">
             <HelpCircle className="h-6 w-6" />
           </div>
+          {/* Rendered outside the shop (no language setting here), so it speaks both languages */}
           <h1 className="font-serif text-3xl font-extrabold tracking-tight">404 - Page Not Found</h1>
+          <p className="font-serif text-2xl font-bold" dir="rtl" lang="ar">الصفحة غير موجودة</p>
           <p className="text-xs sm:text-sm text-[#71717A] leading-relaxed max-w-xs mx-auto">
             The jewelry piece or collection page you are looking for does not exist or has been moved.
+          </p>
+          <p className="text-xs sm:text-sm text-[#71717A] leading-relaxed max-w-xs mx-auto" dir="rtl" lang="ar">
+            القطعة أو الصفحة التي تبحثين عنها غير موجودة أو تم نقلها.
           </p>
         </div>
 
@@ -35,7 +40,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-[#111111] hover:bg-[#C9A227] text-white px-8 py-3.5 text-xs font-bold uppercase tracking-widest transition-all shadow-md hover:shadow-lg active:scale-95"
           >
-            <span>Return to Collection</span>
+            <span>Return to Collection · العودة للمجموعة</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

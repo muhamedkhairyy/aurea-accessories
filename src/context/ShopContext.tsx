@@ -47,13 +47,10 @@ interface ShopContextType {
   categoriesSection: CategoriesSection | null;
   cart: CartItem[];
   wishlist: string[];
-  cartOpen: boolean;
-  setCartOpen: (open: boolean) => void;
+  lastAdded: { product: Product; color: string; at: number } | null; // drives the "added to bag" toast
+  dismissLastAdded: () => void;
   wishlistOpen: boolean;
   setWishlistOpen: (open: boolean) => void;
-  quickViewProduct: Product | null;
-  quickViewColor: string; // the color picked on the card that opened Quick View
-  setQuickViewProduct: (product: Product | null, color?: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedCategory: string;
@@ -125,14 +122,9 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
   const categoriesJsonRef = useRef(initial?.categoriesSection ? JSON.stringify(initial.categoriesSection) : "");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [lastAdded, setLastAdded] = useState<ShopContextType["lastAdded"]>(null);
+  const dismissLastAdded = useCallback(() => setLastAdded(null), []);
   const [wishlistOpen, setWishlistOpen] = useState(false);
-  const [quickViewProduct, setQuickViewProductState] = useState<Product | null>(null);
-  const [quickViewColor, setQuickViewColor] = useState("");
-  const setQuickViewProduct = useCallback((product: Product | null, color = "") => {
-    setQuickViewColor(color);
-    setQuickViewProductState(product);
-  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
@@ -149,7 +141,6 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
       const kept = prev.filter((id) => list.some((p) => p.id === id));
       return kept.length === prev.length ? prev : kept;
     });
-    setQuickViewProductState((prev) => (prev ? list.find((p) => p.id === prev.id) ?? null : prev));
   }, []);
 
   const applyCategories = useCallback((list: ShopCategory[] | undefined) => {
@@ -295,8 +286,8 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
       });
     }
 
-    // Automatically trigger cart drawer for conversion push
-    setCartOpen(true);
+    // Confirm with a toast that links to the cart page
+    setLastAdded({ product, color: selectedColor, at: Date.now() });
   };
 
   const removeFromCart = (productId: string, variant: string, color = "") => {
@@ -348,13 +339,10 @@ export function ShopProvider({ children, initial }: { children: React.ReactNode;
         categoriesSection,
         cart,
         wishlist,
-        cartOpen,
-        setCartOpen,
+        lastAdded,
+        dismissLastAdded,
         wishlistOpen,
         setWishlistOpen,
-        quickViewProduct,
-        quickViewColor,
-        setQuickViewProduct,
         searchQuery,
         setSearchQuery,
         selectedCategory,

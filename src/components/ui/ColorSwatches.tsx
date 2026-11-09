@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import type { ProductColor } from "@/context/ShopContext";
+import { useShop, type ProductColor } from "@/context/ShopContext";
+import { optionLabel } from "@/utils/catalog";
 
 // Color circles for a product; the picked one gets a ring. Used on product cards, Quick View and the sticky bar.
 export default function ColorSwatches({
@@ -17,6 +18,7 @@ export default function ColorSwatches({
   size?: "sm" | "md";
   label?: string;
 }) {
+  const { language } = useShop();
   if (colors.length === 0) return null;
   const dot = size === "sm" ? "h-4 w-4" : "h-6 w-6";
 
@@ -30,8 +32,8 @@ export default function ColorSwatches({
             type="button"
             role="radio"
             aria-checked={active}
-            aria-label={c.name}
-            title={c.name}
+            aria-label={optionLabel(c.name, language)}
+            title={optionLabel(c.name, language)}
             onClick={(e) => {
               e.stopPropagation();
               onSelect(c.name);

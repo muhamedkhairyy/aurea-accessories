@@ -1,5 +1,3 @@
-import { connection } from "next/server";
-import Storefront from "@/components/Storefront";
 import type { InitialShopData } from "@/context/ShopContext";
 import { fetchCatalog } from "@/utils/catalog";
 import { fetchHero } from "@/utils/hero";
@@ -15,7 +13,7 @@ function withTimeout<T>(promise: Promise<T>): Promise<T | null> {
   ]);
 }
 
-async function loadInitialData(): Promise<InitialShopData> {
+export async function loadInitialData(): Promise<InitialShopData> {
   const [catalog, hero, categoriesSection] = await Promise.all([
     withTimeout(fetchCatalog()),
     withTimeout(fetchHero()),
@@ -29,7 +27,7 @@ async function loadInitialData(): Promise<InitialShopData> {
   };
 }
 
-export default async function Home() {
-  await connection(); // catalog is live data — render on every request, never at build time
-  return <Storefront initial={await loadInitialData()} />;
+// Catalog only, for per-page metadata; null when the dashboard is slow or down
+export async function loadCatalog() {
+  return withTimeout(fetchCatalog());
 }

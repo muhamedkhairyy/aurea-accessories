@@ -5,11 +5,12 @@ import { useShop } from "@/context/ShopContext";
 import Logo from "@/components/ui/Logo";
 import { ShoppingBag, Heart, Search, Menu, X, Check, ArrowRight, Globe } from "lucide-react";
 import { translations } from "@/utils/translations";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Header() {
   const {
     cartCount,
-    setCartOpen,
     wishlist,
     setWishlistOpen,
     searchQuery,
@@ -21,6 +22,8 @@ export default function Header() {
   } = useShop();
 
   const t = translations[language];
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -41,7 +44,12 @@ export default function Header() {
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
     const element = document.getElementById(id);
-    if (element) {
+    // Sections live on the home page; from the product or cart page, go there first
+    if (!element) {
+      router.push(`/#${id}`);
+      return;
+    }
+    {
       const headerOffset = 90;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
@@ -80,7 +88,7 @@ export default function Header() {
           <button
             onClick={() => setMobileMenuOpen(true)}
             className="rounded-full p-2 text-[#111111] hover:bg-[#F5F5F5] md:hidden transition-colors"
-            aria-label="Open navigation menu"
+            aria-label={language === "ar" ? "فتح القائمة" : "Open navigation menu"}
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -90,7 +98,8 @@ export default function Header() {
             onClick={() => {
               setSelectedCategory("All");
               setSearchQuery("");
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              if (pathname === "/") window.scrollTo({ top: 0, behavior: "smooth" });
+              else router.push("/");
             }}
             className="cursor-pointer transition-transform hover:scale-[1.01] flex items-center"
           >
@@ -138,7 +147,7 @@ export default function Header() {
             <button
               onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
               className="rounded-full p-2 text-[#111111] hover:bg-[#F5F5F5] transition-colors flex items-center gap-1 font-bold text-xs"
-              aria-label="Toggle Language"
+              aria-label={language === "ar" ? "تغيير اللغة إلى الإنجليزية" : "Switch language to Arabic"}
             >
               <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="hidden sm:inline">{language === 'en' ? 'AR' : 'EN'}</span>
@@ -159,7 +168,7 @@ export default function Header() {
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="rounded-full p-2 text-[#111111] hover:bg-[#F5F5F5] transition-colors"
-                aria-label="Search"
+                aria-label={language === "ar" ? "بحث" : "Search"}
               >
                 {searchOpen && searchQuery ? (
                   <X
@@ -180,7 +189,7 @@ export default function Header() {
             <button
               onClick={() => setWishlistOpen(true)}
               className="relative rounded-full p-2 text-[#111111] hover:bg-[#F5F5F5] transition-colors"
-              aria-label="View Wishlist"
+              aria-label={language === "ar" ? "عرض المفضلة" : "View Wishlist"}
             >
               <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${wishlist.length > 0 ? "fill-[#EF4444] text-[#EF4444]" : ""}`} />
               {wishlist.length > 0 && (
@@ -191,10 +200,10 @@ export default function Header() {
             </button>
 
             {/* Cart Trigger */}
-            <button
-              onClick={() => setCartOpen(true)}
+            <Link
+              href="/cart"
               className="relative rounded-full p-2 text-[#111111] hover:bg-[#F5F5F5] transition-colors"
-              aria-label="View Shopping Bag"
+              aria-label={language === "ar" ? "عرض السلة" : "View Shopping Bag"}
             >
               <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-[#C9A227]" />
               {cartCount > 0 && (
@@ -202,7 +211,7 @@ export default function Header() {
                   {cartCount}
                 </span>
               )}
-            </button>
+            </Link>
 
           </div>
         </div>
