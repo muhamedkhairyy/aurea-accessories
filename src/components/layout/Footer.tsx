@@ -146,11 +146,11 @@ export default function Footer() {
           <ul className="space-y-3 text-xs text-white/70">
             <li className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-[#C9A227]" />
-              <span>support@aurea-accessories.com</span>
+              <span>aureaaccessories723@gmail.com</span>
             </li>
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-[#C9A227]" />
-              <span>+0201038307851</span>
+              <span>01038307851</span>
             </li>
             {/* <li className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-[#C9A227]" />
